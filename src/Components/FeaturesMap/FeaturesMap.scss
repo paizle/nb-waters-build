@@ -1,0 +1,25 @@
+.leaflet-container {
+	.direction-arrow {
+		color: SteelBlue;
+		font-size: 2.5rem;
+		animation: throb ease-out 700ms infinite;
+		transform-origin: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 4rem;
+		height: 4rem;
+	}
+	@keyframes throb {
+		0% {
+			font-size: 2.5rem;
+		}
+
+		50% {
+			font-size: 3rem;
+		}
+		100% {
+			font-size: 2.5rem;
+		}
+	}
+}

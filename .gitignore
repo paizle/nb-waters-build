@@ -1,0 +1,56 @@
+# Node.js dependencies
+/node_modules/
+
+# Vite build output
+/.vite/
+
+# Optional Vite cache
+/.vite-cache/
+/vite.config.ts
+
+# Local development environment
+.env.local
+.env.*
+!.env.example
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE settings
+.vscode/
+.idea/
+
+# Coverage and testing
+/coverage/
+
+# OS-specific files
+*.swp
+*.swo
+
+# PWA specific
+/service-worker.js
+/service-worker.js.map
+/workbox-*.js
+/workbox-*.js.map
+/manifest.webmanifest
+
+# Others you may want depending on setup
+*.log
+*.tgz
+*.bak
+
+# If using TypeScript
+*.tsbuildinfo
+
+/public/waters.geojson
+/public/waters-complete.geojson
+
+/build/waters.geojson
+/build/waters-complete.geojson
