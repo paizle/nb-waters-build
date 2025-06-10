@@ -16,8 +16,6 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function MapComponent({feature, highlightedFeature}) {
 
-  console.log(feature, highlightedFeature)
-
   const [highlightedFeatureCenter, setHighlightedFeatureCenter] = useState(null)
 
   return (

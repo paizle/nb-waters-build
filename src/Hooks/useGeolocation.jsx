@@ -16,26 +16,23 @@ function useGeolocation() {
       
       if (geoLocation) {
 
-        const {latitude, longitude, accuracy, timestamp} = geoLocation.coords
-        
+        const {latitude, longitude, accuracy} = geoLocation.coords
         const test = {
           latitude,
           longitude,
-          accuracy, 
-          timestamp
+          accuracy,
         }
-
-        console.log({test})
 
         setPosition({
           ...test,
+          timestamp: geoLocation.timestamp,
           error: null,
         });
       }
     };
 
     const handleError = (error) => {
-      setLocation((prevState) => ({
+      setPosition((prevState) => ({
         ...prevState,
         error: error,
       }));

@@ -52,5 +52,4 @@ pnpm-debug.log*
 /public/waters.geojson
 /public/waters-complete.geojson
 
-/build/waters.geojson
-/build/waters-complete.geojson
+/dist/

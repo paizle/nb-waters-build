@@ -6,12 +6,10 @@ export default function GPS({isGeolocationAvailable, useGps, setUseGps, position
     setUseGps(!useGps)
   }
 
-  console.log({position})
-
   return isGeolocationAvailable && position
     ? (
       <button className="min-w-8 border" onClick={handleClick}>
-        {useGps ? 'GPS: ' : null}{position?.latitude}, {position?.longitude}
+        {useGps ? 'Following: ' : null}{position?.latitude}, {position?.longitude}
       </button>
     )
     : null

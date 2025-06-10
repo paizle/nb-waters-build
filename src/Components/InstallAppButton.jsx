@@ -17,11 +17,11 @@ function InstallButton() {
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
       // Optionally, send analytics event that PWA is ready to install on desktop
-      console.log("PWA is ready to install");
+      console.info("PWA is ready to install");
     };
 
     const handleAppInstalled = () => {
-      console.log("App Installed!");
+      console.info("App Installed!");
       setIsInstalled(true);
     };
 

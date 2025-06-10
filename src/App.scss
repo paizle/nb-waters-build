@@ -38,34 +38,18 @@ html, body {
 	.leaflet-container {
 		height: 100%;
 		flex-grow: 1;
+
+    .leaflet-control-button {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
 	}
+    
 	.Sidebar {
 		min-width: 18em;
 		flex-basis: 33%;
-
-		ul {
-			padding: 0 1em;
-			li {
-				text-align: center;
-				@screen sm {
-					text-align: left;
-				}
-			}
-			button {
-				margin: 0 auto;
-				border: 1px solid grey;
-				border-radius: 0.25em;
-				padding: 0.25rem;
-				margin: 0.25em 0;
-				background-color: white;
-				&:hover {
-					background-color: grey;
-					color: white;
-				}
-				&.no-name {
-					font-size: 0.65em;
-				}
-			}
-		}
 	}
 }
