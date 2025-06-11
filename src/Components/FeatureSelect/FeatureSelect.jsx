@@ -1,6 +1,5 @@
 import './FeatureSelect.scss'
 import { useState, useMemo } from 'react'
-import { getKey } from '../../Util/featureGetters'
 import Downshift, { useCombobox } from 'downshift'
 
 export default function FeatureSelect({
@@ -43,7 +42,7 @@ export default function FeatureSelect({
       inputValue,
       items,
       itemToString(item) {
-        return getName(item)
+        return item.name
       },
     })
 
@@ -51,10 +50,10 @@ export default function FeatureSelect({
     return items.map((item, index) => (
       <button
         className={`${item === selectedItem ? 'selected' : ''}`}
-        key={getKey(item)}
+        key={item.id}
         {...getItemProps({ item, index })}
       >
-        {getName(item)}
+        {item.name}
       </button>
     ));
   }, [items, selectedItem, getItemProps, getKey, getName]);

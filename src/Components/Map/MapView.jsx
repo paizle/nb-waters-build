@@ -6,10 +6,11 @@ import PositionPin from './PositionPin'
 import GeoJsonFeature from './GeoJsonFeature'
 import GpsControl from './GpsControl'
 import GeoJsonFeatureArrow from './GeoJsonFeatureArrow'
+import NearbyGeoJsonFeatures from './NearbyGeoJsonFeatures'
 
 export const MapContext = createContext();
 
-export default function MapView({selectedFeature}) {
+export default function MapView({selectedFeature, getFeaturesWithinDistance}) {
 
   const geoLocation = useGeolocation()
 
@@ -22,7 +23,8 @@ export default function MapView({selectedFeature}) {
   const value = {
     selectedFeature,
     geoLocation,
-    position
+    position,
+    getFeaturesWithinDistance
   }
 
   return (
@@ -47,6 +49,8 @@ export default function MapView({selectedFeature}) {
         />
         
         <PositionPin isTracking={geoLocation?.isTracking} position={position} />
+
+        <NearbyGeoJsonFeatures position={position} getFeaturesWithinDistance={getFeaturesWithinDistance} />
 
 				<GeoJsonFeature geoJson={selectedFeature} setIsTracking={geoLocation.setIsTracking} />
 
