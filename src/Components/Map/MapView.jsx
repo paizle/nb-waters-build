@@ -14,8 +14,8 @@ export default function MapView({selectedFeature}) {
   const geoLocation = useGeolocation()
 
   const position = geoLocation?.position ? [
-      Number(geoLocation.position.latitude).toFixed(2),
-      Number(geoLocation.position.longitude).toFixed(2)
+      Number(geoLocation.position.latitude).toFixed(4),
+      Number(geoLocation.position.longitude).toFixed(4)
     ]
     : null
 
@@ -34,7 +34,11 @@ export default function MapView({selectedFeature}) {
           url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
         />
 
-        <ControlMap geoLocation={geoLocation} selectedFeature={selectedFeature} />
+        <ControlMap 
+          geoLocation={geoLocation}
+          position={position}
+          selectedFeature={selectedFeature}
+        />
 
         <GpsControl 
           isTracking={geoLocation.isTracking}
@@ -55,13 +59,14 @@ export default function MapView({selectedFeature}) {
 
 export const useMapContext = () => useContext(MapContext);
 
-function ControlMap({geoLocation, selectedFeature}) {
+function ControlMap({geoLocation, selectedFeature, position}) {
 
   const map = useMap()
 
   const turnOffTracking = () => {
     geoLocation.setIsTracking(false)
   }
+
   useEffect(() => {
     map.on('dragstart', turnOffTracking);
     return () => {
@@ -69,14 +74,15 @@ function ControlMap({geoLocation, selectedFeature}) {
     }
   }, [])
 
+  
   useEffect(() => {
     // if tracking is turned on then pan to the current position
-    if (map && geoLocation.isTracking && geoLocation.position) {
-      map.setView([geoLocation.position.latitude, geoLocation.position.longitude], map.getMaxZoom(), {
+    if (map && geoLocation.isTracking && position) {
+      map.setView(position, map.getMaxZoom(), {
         animate: true
       });
     }
-  }, [geoLocation.isTracking])
+  }, [map, geoLocation.isTracking, position])
 
   useEffect(() => {
     // turn tracking off if a new feature is selected
@@ -84,7 +90,6 @@ function ControlMap({geoLocation, selectedFeature}) {
       geoLocation.setIsTracking(false)
     }
   }, [map, selectedFeature])
-
 
   useEffect(() => {
     // zoom to GPS point if tracking is on otherwise use default zoom (mouse position) 
