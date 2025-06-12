@@ -7,7 +7,7 @@ function useGeolocation() {
     'geolocation' in navigator
   );
 
-  const [isTracking, setIsTracking] = useState(); // New state
+  const [isTracking, setIsTracking] = useState();
 
   useEffect(() => {
     let watchId;

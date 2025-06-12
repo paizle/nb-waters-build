@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import { flipCoords } from '../../Util/coordinates'
 
 export default function FeaturesContent({ geoJson, setIsTracking }) {
   const layerRef = useRef(null)
@@ -35,13 +36,4 @@ export default function FeaturesContent({ geoJson, setIsTracking }) {
     }
   }, [geoJson, map])
 
-}
-
-function flipCoords(coords) {
-  return coords.map((point) => {
-    if (Array.isArray(point[0])) {
-      return flipCoords(point)
-    }
-    return [point[1], point[0]]
-  })
 }

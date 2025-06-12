@@ -1,10 +1,11 @@
 import './FeatureSelect.scss'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import Downshift, { useCombobox } from 'downshift'
 
 export default function FeatureSelect({
   items,
   selectItem,
+  selectedItemId,
   getName,
   getKey,
   inputRef,
@@ -12,7 +13,26 @@ export default function FeatureSelect({
 	onBlur
 }) {
 
+  const parentRef = useRef()
+
   const [inputValue, setInputValue] = useState('')
+
+  const [selectedItem, setSelectedItem] = useState(selectedItemId ? items.filter((item) => item.id === selectedItemId) : null)
+
+  useEffect(() => {
+    if (selectedItemId !== selectItem.id) {
+      const selectedItem = selectedItemId ? items.find((item) => item.id === selectedItemId) : null
+      setSelectedItem(selectedItem)
+
+      if (parentRef.current && selectedItem) {
+        setTimeout(() => {
+          parentRef.current.querySelector(`[data-id="${selectedItem.id}"]`).scrollIntoView({ behavior: 'smooth' });
+        }, 10)
+      }
+      
+      
+    }
+  }, [selectedItemId])
 
   const {
       isOpen,
@@ -21,7 +41,6 @@ export default function FeatureSelect({
       getInputProps,
       highlightedIndex,
       getItemProps,
-      selectedItem,
       stateChangeTypes,
     } = useCombobox({
       onInputValueChange(e) {
@@ -32,39 +51,50 @@ export default function FeatureSelect({
           e.type === stateChangeTypes.ItemClick ||
           e.type === stateChangeTypes.InputKeyDownEnter
         ) {
+          //setSelectedItem(e.selectedItem)
           selectItem(e.selectedItem)
         } else if (e.type === stateChangeTypes.InputChange) {
           setInputValue(e.inputValue)
         } else {
+          //setSelectedItem(e.selectedItem)
           selectItem(e.selectedItem)
         }
       },
       inputValue,
       items,
+      selectedItem,
       itemToString(item) {
         return item.name
       },
     })
 
   const renderedItems = useMemo(() => {
-    return items.map((item, index) => (
-      <button
-        className={`${item === selectedItem ? 'selected' : ''}`}
-        key={item.id}
-        {...getItemProps({ item, index })}
-      >
-        {item.name}
-      </button>
-    ));
-  }, [items, selectedItem, getItemProps, getKey, getName]);
+    const search = inputValue.toLowerCase().trim()
+
+    const tempItems = search 
+      ? items.filter((item) => search ? selectedItem === item || item.name.toLowerCase().includes(search) : item)
+      : items
+
+    return tempItems
+      .map((item) => (
+        <button
+          className={`${item === selectedItem ? 'selected' : ''}`}
+          key={item.id}
+          data-id={item.id}
+          {...getItemProps({ item, index: items.findIndex(i => i.id === item.id) })}
+        >
+          {item.name}
+        </button>
+      ));
+  }, [items, selectedItem, getItemProps, getKey, getName, inputValue]);
 
   
   return (
-    <div className={`FeatureSelect`}>
+    <div className={`FeatureSelect`} ref={parentRef}>
       <div className="input" {...getLabelProps()}>
         
           <input
-            placeholder={'placeholder'}
+            placeholder={'Search by Water Name'}
             
             {...getInputProps()}
           />
@@ -81,13 +111,6 @@ export default function FeatureSelect({
       </div>
     
       <div className={`menu ${isOpen ? 'open' : ''}`} {...getMenuProps()}>
-        <button
-          className={`${!selectedItem ? 'selected' : ''}`}
-          key=""
-          value=""
-        >
-          (select a water body)
-        </button>
         {renderedItems}
       </div>
     </div>

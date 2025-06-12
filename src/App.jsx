@@ -13,11 +13,13 @@ import useRecords from './Hooks/useIdb'
 export default function App() {
   const [selectedFeature, setSelectedFeature] = useState()
 
+  const [selectedFeatureId, setSelectedFeatureId] = useState()
+
   const { sortedWaters, getFeatureById, getFeaturesWithinDistance } = useRecords();
 
-  console.log(sortedWaters)
 
 	const selectFeature = async (item) => {
+    setSelectedFeatureId(item.id)
     const feature = await getFeatureById(item.id)
     setSelectedFeature(feature)
 	}
@@ -27,6 +29,7 @@ export default function App() {
 
       <MapView 
         selectedFeature={selectedFeature}
+        selectFeature={selectFeature}
         getFeaturesWithinDistance={getFeaturesWithinDistance}
       />
       <Sidebar>
@@ -35,6 +38,7 @@ export default function App() {
           ? <FeatureSelect
               items={sortedWaters}
               selectItem={selectFeature}
+              selectedItemId={selectedFeatureId}
               getName={getName}
               getKey={getKey}
             />

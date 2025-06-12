@@ -50,7 +50,8 @@ export const dbPromise = openDB(dbName, 1, {
     const sorted = allRecords
       .slice()
       .map((item) => ({ id: getKey(item), name: getName(item) }))
-      .sort(sortFeatures);
+      .sort(sortFeatures)
+      .map((item, index) => ({ ...item, order: index }))
 
     const tx = db.transaction(sortedWatersTable, 'readwrite');
     for (const record of sorted) {

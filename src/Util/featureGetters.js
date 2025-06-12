@@ -1,4 +1,4 @@
-export const getName = (feature) => feature.properties?.NAME1 || feature.properties?.NAME2 || feature.properties?.LOCALNAME || ''
+export const getName = (feature) => feature.properties?.NAME1 || feature.properties?.NAME2 || feature.properties?.LOCALNAME || ('Unamed (ID: ' + feature.properties.OBJECTID + ')')
 
 export const getKey = (feature) => feature.properties.OBJECTID;
 

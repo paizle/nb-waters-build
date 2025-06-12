@@ -7,24 +7,39 @@ import GeoJsonFeature from './GeoJsonFeature'
 import GpsControl from './GpsControl'
 import GeoJsonFeatureArrow from './GeoJsonFeatureArrow'
 import NearbyGeoJsonFeatures from './NearbyGeoJsonFeatures'
+import { haversineDistance } from '../../Util/coordinates'
 
 export const MapContext = createContext();
 
-export default function MapView({selectedFeature, getFeaturesWithinDistance}) {
+export default function MapView({selectedFeature, getFeaturesWithinDistance, selectFeature}) {
 
   const geoLocation = useGeolocation()
 
-  const position = geoLocation?.position ? [
-      Number(geoLocation.position.latitude).toFixed(4),
-      Number(geoLocation.position.longitude).toFixed(4)
-    ]
-    : null
+  const [position, setPosition] = useState(null)
+  const [center, setCenter] = useState(null)
+
+  useEffect(() => {
+    if (!geoLocation.position) return
+    if (!position) {
+      setPosition([geoLocation.position.latitude, geoLocation.position.longitude])
+    } else {
+      const currentPosition = {lat: geoLocation.position.latitude, lng: geoLocation.position.longitude}
+      const distance = haversineDistance({lat: position[0], lng: position[1]}, currentPosition)
+      if (distance > 5) {
+        setPosition([currentPosition.lat, currentPosition.lng])
+      }
+    }
+
+  }, [geoLocation.position])
 
   const value = {
     selectedFeature,
+    selectFeature,
     geoLocation,
     position,
-    getFeaturesWithinDistance
+    getFeaturesWithinDistance,
+    center,
+    setCenter
   }
 
   return (
@@ -40,6 +55,7 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance}) {
           geoLocation={geoLocation}
           position={position}
           selectedFeature={selectedFeature}
+          setCenter={setCenter}
         />
 
         <GpsControl 
@@ -50,7 +66,11 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance}) {
         
         <PositionPin isTracking={geoLocation?.isTracking} position={position} />
 
-        <NearbyGeoJsonFeatures position={position} getFeaturesWithinDistance={getFeaturesWithinDistance} />
+        <NearbyGeoJsonFeatures 
+          position={[center?.lat, center?.lng]}
+          getFeaturesWithinDistance={getFeaturesWithinDistance}
+          selectFeature={selectFeature}
+        />
 
 				<GeoJsonFeature geoJson={selectedFeature} setIsTracking={geoLocation.setIsTracking} />
 
@@ -63,9 +83,13 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance}) {
 
 export const useMapContext = () => useContext(MapContext);
 
-function ControlMap({geoLocation, selectedFeature, position}) {
+function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
+
+  const [isTracking, setIsTracking] = useState(geoLocation.isTracking)
 
   const map = useMap()
+
+  
 
   const turnOffTracking = () => {
     geoLocation.setIsTracking(false)
@@ -78,14 +102,28 @@ function ControlMap({geoLocation, selectedFeature, position}) {
     }
   }, [])
 
-  
+  useEffect(() => {
+    const handleMoveEnd = () => setCenter(map.getCenter())
+    if (map) {
+      map.on('moveend', handleMoveEnd)
+      handleMoveEnd()
+    }
+    return () => {
+      if (map) {
+        map.off('moveend', handleMoveEnd)
+      } 
+    }
+  }, [map])
+
   useEffect(() => {
     // if tracking is turned on then pan to the current position
     if (map && geoLocation.isTracking && position) {
-      map.setView(position, map.getMaxZoom(), {
+      let zoom = isTracking ? map.getZoom() : map.getMaxZoom()
+      map.setView(position, zoom, {
         animate: true
-      });
+      })
     }
+    setIsTracking(geoLocation.isTracking)
   }, [map, geoLocation.isTracking, position])
 
   useEffect(() => {

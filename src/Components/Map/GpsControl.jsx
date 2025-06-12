@@ -11,6 +11,10 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
 
   const containerRef = useRef(null)
 
+  const handleClick = () => {
+    setIsTracking(!isTracking)
+  }
+
   useEffect(() => {
     if (!map) return;
 
@@ -50,29 +54,20 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
         rootRef.current = ReactDOM.createRoot(containerRef.current);
       }
       rootRef.current.render(
-        <GeoLocationStatus position={position} isTracking={isTracking} setIsTracking={setIsTracking} />
+        !!position && (
+          <div className="leaflet-control-container ">
+            <button 
+              className={`leaflet-control-button GeoLocationStatus ${isTracking ? 'on' : ''}`}
+              onClick={handleClick}
+            >
+              <div className="pin">📍</div>
+              <strong>{position[0]}, {position[1]}</strong>
+            </button>
+          </div>
+        )
       );
     }
-  }, [containerRef.current, position])
+  }, [containerRef.current, position, isTracking])
 
   return null;
-}
-
-function GeoLocationStatus({isTracking, setIsTracking, position }) {
-
-  const handleClick = () => {
-    setIsTracking(!isTracking)
-  }
-
-  return !!position && (
-    <div className="leaflet-control-container ">
-      <button 
-        className={`leaflet-control-button GeoLocationStatus ${isTracking ? 'on' : null}`}
-        onClick={handleClick}
-      >
-        <div className="pin">📍</div>
-        <strong>{position[0]}, {position[1]}</strong>
-      </button>
-    </div>
-  )
 }
