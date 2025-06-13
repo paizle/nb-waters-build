@@ -1,6 +1,6 @@
-export const getName = (feature) => feature.properties?.NAME1 || feature.properties?.NAME2 || feature.properties?.LOCALNAME || ('Unamed (ID: ' + feature.properties.OBJECTID + ')')
+export const getFeatureName = (feature) => feature.properties?.NAME1 || feature.properties?.NAME2 || feature.properties?.LOCALNAME || ('Unamed (ID: ' + feature.properties.OBJECTID + ')')
 
-export const getKey = (feature) => feature.properties.OBJECTID;
+export const getFeatureId = (feature) => feature.properties.OBJECTID;
 
 export const getIds = (properties) => {
   const fields = ['OBJECTID', 'NID', 'LOCALNAME', 'WATERDEFINITION', 'WATERID', 'DATASETNAME', 'WATERSHEDCODE']

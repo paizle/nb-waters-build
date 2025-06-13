@@ -6,7 +6,7 @@ import LoadingSpinner from './Components/LoadingSpinner/LoadingSpinner'
 import InstallButton from './Components/InstallAppButton'
 import MapView from './Components/Map/MapView'
 import FeatureSelect from './Components/FeatureSelect/FeatureSelect'
-import { getKey, getName } from './Util/featureGetters'
+import { getFeatureId, getFeatureName } from './Util/featureGetters'
 
 import useRecords from './Hooks/useIdb'
 
@@ -39,8 +39,8 @@ export default function App() {
               items={sortedWaters}
               selectItem={selectFeature}
               selectedItemId={selectedFeatureId}
-              getName={getName}
-              getKey={getKey}
+              getName={getFeatureName}
+              getKey={getFeatureId}
             />
           : <LoadingSpinner />
         }

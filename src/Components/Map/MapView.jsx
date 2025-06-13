@@ -9,6 +9,8 @@ import GeoJsonFeatureArrow from './GeoJsonFeatureArrow'
 import NearbyGeoJsonFeatures from './NearbyGeoJsonFeatures'
 import { haversineDistance } from '../../Util/coordinates'
 
+import { toPoint } from '../../Util/coordinates'
+
 export const MapContext = createContext();
 
 export default function MapView({selectedFeature, getFeaturesWithinDistance, selectFeature}) {
@@ -20,16 +22,17 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance, sel
 
   useEffect(() => {
     if (!geoLocation.position) return
+    const fromGeoLocation = (geoLocation) => ({lat: geoLocation.position.latitude, lng: geoLocation.position.longitude})
+    
     if (!position) {
-      setPosition([geoLocation.position.latitude, geoLocation.position.longitude])
+      setPosition(fromGeoLocation(geoLocation))
     } else {
-      const currentPosition = {lat: geoLocation.position.latitude, lng: geoLocation.position.longitude}
-      const distance = haversineDistance({lat: position[0], lng: position[1]}, currentPosition)
-      if (distance > 5) {
-        setPosition([currentPosition.lat, currentPosition.lng])
+      const currentPosition = fromGeoLocation(geoLocation)
+      const distance = haversineDistance(position, currentPosition)
+      if (distance > 15) {
+        setPosition(currentPosition)
       }
     }
-
   }, [geoLocation.position])
 
   const value = {
@@ -67,14 +70,13 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance, sel
         <PositionPin isTracking={geoLocation?.isTracking} position={position} />
 
         <NearbyGeoJsonFeatures 
-          position={[center?.lat, center?.lng]}
-          getFeaturesWithinDistance={getFeaturesWithinDistance}
+          position={center}
           selectFeature={selectFeature}
         />
 
 				<GeoJsonFeature geoJson={selectedFeature} setIsTracking={geoLocation.setIsTracking} />
 
-        <GeoJsonFeatureArrow geoJson={selectedFeature} />
+        <GeoJsonFeatureArrow geoJson={selectedFeature} position={center} />
         
       </MapContainer>
     </MapContext.Provider>
@@ -88,8 +90,6 @@ function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
   const [isTracking, setIsTracking] = useState(geoLocation.isTracking)
 
   const map = useMap()
-
-  
 
   const turnOffTracking = () => {
     geoLocation.setIsTracking(false)

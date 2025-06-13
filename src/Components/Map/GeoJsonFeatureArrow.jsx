@@ -10,12 +10,11 @@ export default function GeoJsonFeatureArrow({ geoJson, position }) {
   const map = useMap()
 
   function isPointInView(latlng) {
-    return map.getBounds().contains(latlng)
+    return map.getBounds().pad(-.4).contains(latlng)
   }
 
   function getAngleToPoint(latlng) {
-    const center = map.getCenter()
-    const centerPoint = map.latLngToContainerPoint(center)
+    const centerPoint = map.latLngToContainerPoint(position)
     const targetPoint = map.latLngToContainerPoint(latlng)
 
     const dx = targetPoint.x - centerPoint.x
@@ -85,7 +84,7 @@ export default function GeoJsonFeatureArrow({ geoJson, position }) {
         markerRef.current = null
       }
     }
-  }, [geoJson, map])
+  }, [geoJson, map, position])
 
 }
 

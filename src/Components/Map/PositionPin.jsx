@@ -26,6 +26,12 @@ export default function PositionPin({position}) {
       }
       markerRef.current = marker
     }
+    return () => {
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current)
+        markerRef.current = null
+      }
+    }
   }, [map, position])
   return null
 }

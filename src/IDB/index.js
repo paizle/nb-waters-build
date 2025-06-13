@@ -1,5 +1,6 @@
 import { openDB } from 'idb';
-import { getKey, getName } from '../Util/featureGetters';
+import { getFeatureId, getFeatureName } from '../Util/featureGetters';
+import { polygonCentroid } from '../Util/coordinates'
 
 const dbName = 'waters';
 export const waterFeaturesTable = 'water-features';
@@ -8,14 +9,19 @@ export const featureCentroidsTable = 'feature-centroids';
 
 export const dbPromise = openDB(dbName, 1, {
   async upgrade(db) {
+    console.log('one')
     if (!db.objectStoreNames.contains(waterFeaturesTable)) {
       db.createObjectStore(waterFeaturesTable, { keyPath: 'properties.OBJECTID' });
     }
 
+    console.log('two')
+    
     if (!db.objectStoreNames.contains(sortedWatersTable)) {
       db.createObjectStore(sortedWatersTable, { autoIncrement: true });
     }
 
+    console.log('three')
+    
     if (!db.objectStoreNames.contains(featureCentroidsTable)) {
       db.createObjectStore(featureCentroidsTable, { keyPath: 'OBJECTID' });
     }
@@ -24,7 +30,9 @@ export const dbPromise = openDB(dbName, 1, {
   // Populate waterFeaturesTable if empty
   const count = await db.count(waterFeaturesTable);
   if (count === 0) {
+    console.log('test')
     const response = await fetch('/waters.geojson', { cache: 'default' });
+    console.log('hi!!!')
     const data = await response.json();
     const tx = db.transaction(waterFeaturesTable, 'readwrite');
     for (const feature of data.features) {
@@ -49,7 +57,7 @@ export const dbPromise = openDB(dbName, 1, {
 
     const sorted = allRecords
       .slice()
-      .map((item) => ({ id: getKey(item), name: getName(item) }))
+      .map((item) => ({ id: getFeatureId(item), name: getFeatureName(item) }))
       .sort(sortFeatures)
       .map((item, index) => ({ ...item, order: index }))
 
@@ -93,26 +101,4 @@ export async function getSortedWaterNames() {
 export async function getFeatureCentroids() {
   const db = await dbPromise;
   return db.getAll(featureCentroidsTable);
-}
-
-function polygonCentroid(points) {
-  let area = 0;
-  let x = 0;
-  let y = 0;
-  const n = points.length;
-
-  for (let i = 0; i < n - 1; i++) {
-    const [x0, y0] = points[i];
-    const [x1, y1] = points[i + 1];
-    const cross = x0 * y1 - x1 * y0;
-    area += cross;
-    x += (x0 + x1) * cross;
-    y += (y0 + y1) * cross;
-  }
-
-  area = area / 2;
-  x = x / (6 * area);
-  y = y / (6 * area);
-
-  return { lat: y, lng: x };
 }

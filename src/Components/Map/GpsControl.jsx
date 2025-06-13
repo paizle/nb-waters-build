@@ -20,11 +20,9 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
 
     const CustomControl = L.Control.extend({
       onAdd: function () {
-
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         containerRef.current = container
         L.DomEvent.disableClickPropagation(container);
-
         return container;
       },
 
@@ -61,7 +59,7 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
               onClick={handleClick}
             >
               <div className="pin">📍</div>
-              <strong>{position[0]}, {position[1]}</strong>
+              <strong>{position.lat}, {position.lng}</strong>
             </button>
           </div>
         )

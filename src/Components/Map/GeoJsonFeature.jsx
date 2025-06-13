@@ -21,7 +21,7 @@ export default function FeaturesContent({ geoJson, setIsTracking }) {
     let layer
     if (geoJson && (geoJson.geometry.type === 'Polygon' || geoJson.geometry.type === 'MultiPolygon')) {
       setIsTracking(false)
-      layer = L.polygon(flipCoords(geoJson.geometry.coordinates), { weight: 6, opacity: 0.5 })
+      layer = L.polygon(flipCoords(geoJson.geometry.coordinates), { weight: 5, opacity: 0.8 })
       layer.addTo(map)
       map.fitBounds(layer.getBounds())
       

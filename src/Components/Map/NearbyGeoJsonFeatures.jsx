@@ -3,55 +3,73 @@ import { useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { flipCoords } from '../../Util/coordinates'
-import { getKey, getName } from '../../Util/featureGetters'
+import { getFeatureId, getFeatureName } from '../../Util/featureGetters'
 
-export default function NearbyGeoJsonFeatures({ position, getFeaturesWithinDistance, selectFeature }) {
-  const layersRef = useRef(null)
+import useRecords from '../../Hooks/useIdb'
 
-  const mapRef = React.useRef(useMap())
-  const map = mapRef.current || null
+export default function NearbyGeoJsonFeatures({ position, selectFeature }) {
 
-  // Effect to handle geoJson (polygon layer)
+  const { getFeaturesWithinDistance } = useRecords()
+
+  const map = useMap()
+
+  const layersRef = useRef(new Map())
+
   useEffect(() => {
 
-    const removeOldLayers = () => {
-      if (layersRef.current) {
-        layersRef.current.forEach((layer) => {
-          map.removeLayer(layer)
-        })
-      }
-    }
+    (async () => {
+      let incomingIds = []
 
-    const go = async () => {
-      removeOldLayers()
-
-      if (position && map.getZoom() > 13) {
+      if (position && map.getZoom() > 11) {
         const center = {
-          lat: parseFloat(position[0]),
-          lng: parseFloat(position[1])
+          lat: parseFloat(position.lat),
+          lng: parseFloat(position.lng)
         };
-        const features = await getFeaturesWithinDistance(center, 5000)
+        const features = await getFeaturesWithinDistance(center, 10000)
 
         // Create and add the polygon layer from geoJson
-        let layer
-        let layers = []
         if (features.length) {
           features.forEach((feature) => {
-            layer = L.polygon(flipCoords(feature.geometry.coordinates), { weight: 2, color: 'purple', fillColor: 'rgba(128, 0, 128, 0.3)' })
-            layer.on('click', () => {
-              selectFeature({id: getKey(feature), name: getName(feature)})
-            })
-            layer.addTo(map)
-            layers.push(layer)
+            const featureId = getFeatureId(feature)
+            incomingIds.push(featureId)
+            if (!layersRef.current.has(featureId)) {
+              const layer = L.polygon(
+                flipCoords(feature.geometry.coordinates),
+                { weight: 2, color: 'rgba(100, 0, 255, 1)',  fillColor: 'rgba(100, 0, 255, 0.4)' }
+              )
+              layer.on('click', () => {
+                selectFeature({id: getFeatureId(feature), name: getFeatureName(feature)})
+              })
+              layer.on('mouseover', (e) => {
+                const tooltipContent = `
+                  <strong>${getFeatureName(feature)}</strong><br>
+                `;
+
+                layer.bindTooltip(tooltipContent, {
+                  permanent: false,
+                  sticky: true,    // follows the cursor
+                  direction: 'top',
+                  opacity: 0.9
+                }).openTooltip(e.latlng);
+              });
+
+              layer.on('mouseout', () => {
+                layer.closeTooltip();
+              });
+              layer.addTo(map)
+              layersRef.current.set(featureId, layer)
+            }
           })
-          layersRef.current = layers
         }
       }
-    }
-    go()
+      for (const id of layersRef.current.keys()) {
+          if (!incomingIds.includes(id)) {
+            const layer = layersRef.current.get(id)
+            map.removeLayer(layer)
+            layersRef.current.delete(id)
+          }
+        }
+    })()
 
-    return () => {
-      removeOldLayers()
-    }
   }, [position])
 }

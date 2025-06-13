@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt'], // add any static assets
       manifest: {
-        name: 'My App',
-        short_name: 'App',
+        name: 'New Brunswick Waters',
+        short_name: 'NB Waters',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
