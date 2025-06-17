@@ -1,4 +1,4 @@
-import './FeatureSelect.scss'
+import './SelectWater.scss'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import Downshift, { useCombobox } from 'downshift'
 
@@ -88,9 +88,8 @@ export default function FeatureSelect({
       ));
   }, [items, selectedItem, getItemProps, getKey, getName, inputValue]);
 
-  
   return (
-    <div className={`FeatureSelect`} ref={parentRef}>
+    <div className={`SelectWater`} ref={parentRef}>
       <div className="input" {...getLabelProps()}>
         
           <input

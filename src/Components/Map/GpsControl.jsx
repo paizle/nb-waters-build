@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import ReactDOM from 'react-dom/client';
+import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 
 export default function GpsControl({ isTracking, setIsTracking, position }) {
   
@@ -52,18 +53,22 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
         rootRef.current = ReactDOM.createRoot(containerRef.current);
       }
       rootRef.current.render(
-        !!position && (
-          <div className="leaflet-control-container ">
-            <button 
-              className={`leaflet-control-button GeoLocationStatus ${isTracking ? 'on' : ''}`}
-              onClick={handleClick}
-            >
-              <div className="pin">📍</div>
-              <strong>{position.lat}, {position.lng}</strong>
-            </button>
-          </div>
-        )
-      );
+        <div className="leaflet-control-container GpsControl">
+          {position
+            ? (
+              
+                <button 
+                  className={`leaflet-control-button GeoLocationStatus ${isTracking ? 'on' : ''}`}
+                  onClick={handleClick}
+                >
+                  <div className="pin">📍</div>
+                  <strong>{position.lat}, {position.lng}</strong>
+                </button>
+              
+            )
+            : <LoadingSpinner />}
+        </div>
+      )
     }
   }, [containerRef.current, position, isTracking])
 

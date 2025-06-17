@@ -5,7 +5,7 @@ import Sidebar from './Components/Sidebar/Sidebar'
 import LoadingSpinner from './Components/LoadingSpinner/LoadingSpinner'
 import InstallButton from './Components/InstallAppButton'
 import MapView from './Components/Map/MapView'
-import FeatureSelect from './Components/FeatureSelect/FeatureSelect'
+import SelectWater from './Components/SelectWater/SelectWater'
 import { getFeatureId, getFeatureName } from './Util/featureGetters'
 
 import useRecords from './Hooks/useIdb'
@@ -35,7 +35,7 @@ export default function App() {
       <Sidebar>
         <InstallButton />
         {sortedWaters.length 
-          ? <FeatureSelect
+          ? <SelectWater
               items={sortedWaters}
               selectItem={selectFeature}
               selectedItemId={selectedFeatureId}

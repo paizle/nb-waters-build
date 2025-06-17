@@ -23,6 +23,15 @@
 		}
 	}
 
+  .GpsControl {
+    .LoadingSpinner {
+      width: 2.5em;
+      height: 2.5em;
+      margin: 0;
+      padding: .5em;
+    }
+  }
+
   .GeoLocationStatus {
     display: flex;
     align-items: center;
