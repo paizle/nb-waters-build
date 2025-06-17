@@ -40,18 +40,18 @@ export default function NearbyGeoJsonFeatures({ position, selectFeature }) {
               layer.on('click', () => {
                 selectFeature({id: getFeatureId(feature), name: getFeatureName(feature)})
               })
-              layer.on('mouseover', (e) => {
-                const tooltipContent = `
-                  <strong>${getFeatureName(feature)}</strong><br>
-                `;
+              if (!L.Browser.touch) {
+                layer.on('mouseover', (e) => {
+                  const tooltipContent = `<strong>${getFeatureName(feature)}</strong><br>`;
 
-                layer.bindTooltip(tooltipContent, {
-                  permanent: false,
-                  sticky: true,    // follows the cursor
-                  direction: 'top',
-                  opacity: 0.9
-                }).openTooltip(e.latlng);
-              });
+                  layer.bindTooltip(tooltipContent, {
+                    permanent: false,
+                    sticky: true,    // follows the cursor
+                    direction: 'top',
+                    opacity: 0.9
+                  }).openTooltip(e.latlng);
+                })
+              }
 
               layer.on('mouseout', () => {
                 layer.closeTooltip();
