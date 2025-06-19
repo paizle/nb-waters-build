@@ -1,45 +1,43 @@
 import './SelectWater.scss'
 import { useState, useMemo, useEffect, useRef } from 'react'
-import Downshift, { useCombobox } from 'downshift'
+import { useCombobox } from 'downshift'
+import { XCircleIcon } from '@heroicons/react/24/outline'
 
 export default function FeatureSelect({
   items,
   selectItem,
   selectedItemId,
-  getName,
-  getKey,
-  inputRef,
-	onFocus,
-	onBlur
 }) {
 
   const parentRef = useRef()
 
   const [inputValue, setInputValue] = useState('')
 
-  const [selectedItem, setSelectedItem] = useState(selectedItemId ? items.filter((item) => item.id === selectedItemId) : null)
+  const [shouldScroll, setShouldScroll] = useState(true)
+
+  const scrollToSelection = () => {
+    if (shouldScroll) {
+      setTimeout(() => {
+        parentRef.current
+          .querySelector(`[data-id="${selectedItemId}"]`)
+          .scrollIntoView({ behavior: 'instant' });
+      }, 10)
+    } else {
+      setShouldScroll(true)
+    }
+  }
 
   useEffect(() => {
-    if (selectedItemId !== selectItem.id) {
-      const selectedItem = selectedItemId ? items.find((item) => item.id === selectedItemId) : null
-      setSelectedItem(selectedItem)
-
-      if (parentRef.current && selectedItem) {
-        setTimeout(() => {
-          parentRef.current.querySelector(`[data-id="${selectedItem.id}"]`).scrollIntoView({ behavior: 'smooth' });
-        }, 10)
-      }
-      
-      
+    if (parentRef.current && selectedItemId) {
+      scrollToSelection()
     }
-  }, [selectedItemId])
+  }, [parentRef.current, selectedItemId])
 
   const {
       isOpen,
       getLabelProps,
       getMenuProps,
       getInputProps,
-      highlightedIndex,
       getItemProps,
       stateChangeTypes,
     } = useCombobox({
@@ -51,42 +49,65 @@ export default function FeatureSelect({
           e.type === stateChangeTypes.ItemClick ||
           e.type === stateChangeTypes.InputKeyDownEnter
         ) {
-          //setSelectedItem(e.selectedItem)
           selectItem(e.selectedItem)
         } else if (e.type === stateChangeTypes.InputChange) {
           setInputValue(e.inputValue)
         } else {
-          //setSelectedItem(e.selectedItem)
           selectItem(e.selectedItem)
         }
       },
+      onSelectedItemChange: (e) => {
+        setShouldScroll(false)
+        selectItem(e.selectedItem)
+      },
       inputValue,
       items,
-      selectedItem,
       itemToString(item) {
-        return item.name
+        return item ? item.name : ''
       },
     })
+
+  const getCustomItemProps = (options) => {
+    
+    const props = getItemProps(options)
+    
+    const newProps = {
+      ...props,
+      onMouseMove: null
+    }
+    
+    return newProps
+  }
+    
 
   const renderedItems = useMemo(() => {
     const search = inputValue.toLowerCase().trim()
 
     const tempItems = search 
-      ? items.filter((item) => search ? selectedItem === item || item.name.toLowerCase().includes(search) : item)
+      ? items.filter((item) => search ? selectedItemId === item.id || item.name.toLowerCase().includes(search) : item)
       : items
 
     return tempItems
       .map((item) => (
         <button
-          className={`${item === selectedItem ? 'selected' : ''}`}
+          className={`${item.id === selectedItemId ? 'selected' : ''}`}
           key={item.id}
           data-id={item.id}
-          {...getItemProps({ item, index: items.findIndex(i => i.id === item.id) })}
+          {...getCustomItemProps({ item, index: items.findIndex(i => i.id === item.id) })}
         >
           {item.name}
         </button>
       ));
-  }, [items, selectedItem, getItemProps, getKey, getName, inputValue]);
+  }, [items, selectedItemId, getItemProps, inputValue]);
+
+  const clearSelection = () => {
+    if (inputValue) {
+      setInputValue('')
+      scrollToSelection()
+    } else {
+      selectItem(null)
+    }
+  }
 
   return (
     <div className={`SelectWater`} ref={parentRef}>
@@ -97,16 +118,14 @@ export default function FeatureSelect({
             
             {...getInputProps()}
           />
-          {/*
           <button
-            className="clear-input"
-            aria-label="Clear Search"
+            className="clear-selection"
+            aria-label="Clear Selection"
             type="button"
-            onClick={clearSearch}
+            onClick={clearSelection}
           >
             <XCircleIcon />
           </button>
-          */}
       </div>
     
       <div className={`menu ${isOpen ? 'open' : ''}`} {...getMenuProps()}>

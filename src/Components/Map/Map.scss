@@ -24,39 +24,40 @@
 	}
 
   .GpsControl {
+    background-color: white;
     .LoadingSpinner {
       width: 2.5em;
       height: 2.5em;
       margin: 0;
       padding: .5em;
+      
     }
-  }
-
-  .GeoLocationStatus {
-    display: flex;
-    align-items: center;
-    gap: .5em;
-    .pin {
-      position: relative;
-      font-size: 1.5em;
-    }
-    &.on {
-      background-color: yellow;
-      .pin:before {
-        content: '';
-        position: absolute;
-        z-index: 0;
-        left: 50%;
-        bottom: 0;
-        border-radius: 50%;
-        transform: scaleY(0.5) translate(-50%, .1em);
-        transform-origin: bottom center;
-        transform: 300ms ease;
-        width: 1em;
-        height: 1em;
-        border: 2px solid grey;
-        animation: throb-oval 1.5s ease forwards;
-        animation-iteration-count: infinite;
+    .GeoLocationStatus {
+      display: flex;
+      align-items: center;
+      gap: .5em;
+      .pin {
+        position: relative;
+        font-size: 1.5em;
+      }
+      &.on {
+        background-color: yellow;
+        .pin:before {
+          content: '';
+          position: absolute;
+          z-index: 0;
+          left: 50%;
+          bottom: 0;
+          border-radius: 50%;
+          transform: scaleY(0.5) translate(-50%, .1em);
+          transform-origin: bottom center;
+          transform: 300ms ease;
+          width: 1em;
+          height: 1em;
+          border: 2px solid grey;
+          animation: throb-oval 1.5s ease forwards;
+          animation-iteration-count: infinite;
+        }
       }
     }
   }

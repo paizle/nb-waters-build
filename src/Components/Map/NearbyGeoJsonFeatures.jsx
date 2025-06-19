@@ -6,6 +6,7 @@ import { flipCoords } from '../../Util/coordinates'
 import { getFeatureId, getFeatureName } from '../../Util/featureGetters'
 
 import useRecords from '../../Hooks/useIdb'
+import useDeviceProperties from '../../Hooks/useDeviceProperties'
 
 export default function NearbyGeoJsonFeatures({ position, selectFeature }) {
 
@@ -14,6 +15,8 @@ export default function NearbyGeoJsonFeatures({ position, selectFeature }) {
   const map = useMap()
 
   const layersRef = useRef(new Map())
+
+  const deviceProperties = useDeviceProperties()
 
   useEffect(() => {
 
@@ -35,12 +38,12 @@ export default function NearbyGeoJsonFeatures({ position, selectFeature }) {
             if (!layersRef.current.has(featureId)) {
               const layer = L.polygon(
                 flipCoords(feature.geometry.coordinates),
-                { weight: 2, color: 'rgba(100, 0, 255, 1)',  fillColor: 'rgba(100, 0, 255, 0.4)' }
+                { weight: 2, color: 'rgba(0, 200, 200, 1)',  fillColor: 'rgba(0, 200, 150, 0.4)' }
               )
               layer.on('click', () => {
                 selectFeature({id: getFeatureId(feature), name: getFeatureName(feature)})
               })
-              if (!L.Browser.touch) {
+              if (!deviceProperties.isTouch) {
                 layer.on('mouseover', (e) => {
                   const tooltipContent = `<strong>${getFeatureName(feature)}</strong><br>`;
 

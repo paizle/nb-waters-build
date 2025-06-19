@@ -62,7 +62,7 @@ export default function GpsControl({ isTracking, setIsTracking, position }) {
                   onClick={handleClick}
                 >
                   <div className="pin">📍</div>
-                  <strong>{position.lat}, {position.lng}</strong>
+                  <strong>{Number(position.lat).toFixed(2)}, {Number(position.lng).toFixed(2)}</strong>
                 </button>
               
             )

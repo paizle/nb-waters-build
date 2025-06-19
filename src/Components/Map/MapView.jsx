@@ -9,8 +9,6 @@ import GeoJsonFeatureArrow from './GeoJsonFeatureArrow'
 import NearbyGeoJsonFeatures from './NearbyGeoJsonFeatures'
 import { haversineDistance } from '../../Util/coordinates'
 
-import { toPoint } from '../../Util/coordinates'
-
 export const MapContext = createContext();
 
 export default function MapView({selectedFeature, getFeaturesWithinDistance, selectFeature}) {
@@ -74,7 +72,11 @@ export default function MapView({selectedFeature, getFeaturesWithinDistance, sel
           selectFeature={selectFeature}
         />
 
-				<GeoJsonFeature geoJson={selectedFeature} setIsTracking={geoLocation.setIsTracking} />
+				<GeoJsonFeature 
+          feature={selectedFeature}
+          selectFeature={selectFeature}
+          setIsTracking={geoLocation.setIsTracking}
+        />
 
         <GeoJsonFeatureArrow geoJson={selectedFeature} position={center} />
         
@@ -87,7 +89,7 @@ export const useMapContext = () => useContext(MapContext);
 
 function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
 
-  const [isTracking, setIsTracking] = useState(geoLocation.isTracking)
+  const [trackingZoom, setTrackingZoom] = useState()
 
   const map = useMap()
 
@@ -103,11 +105,15 @@ function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
   }, [])
 
   useEffect(() => {
+
+    setTrackingZoom(map.getMaxZoom())
+
     const handleMoveEnd = () => setCenter(map.getCenter())
     if (map) {
       map.on('moveend', handleMoveEnd)
       handleMoveEnd()
     }
+    
     return () => {
       if (map) {
         map.off('moveend', handleMoveEnd)
@@ -116,15 +122,30 @@ function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
   }, [map])
 
   useEffect(() => {
+    
     // if tracking is turned on then pan to the current position
     if (map && geoLocation.isTracking && position) {
-      let zoom = isTracking ? map.getZoom() : map.getMaxZoom()
-      map.setView(position, zoom, {
+      map.setView(position, trackingZoom, {
         animate: true
       })
     }
-    setIsTracking(geoLocation.isTracking)
-  }, [map, geoLocation.isTracking, position])
+
+    const handleZoom = () => {
+      if (geoLocation.isTracking) {
+        setTrackingZoom(map.getZoom())
+      }
+    }
+
+    if (map) {
+      map.on('zoom', handleZoom)
+    }
+
+    return () => {
+      if (map) {
+        map.off('zoom', handleZoom)
+      } 
+    }
+  }, [map, geoLocation.isTracking, position, trackingZoom])
 
   useEffect(() => {
     // turn tracking off if a new feature is selected

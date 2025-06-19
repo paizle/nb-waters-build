@@ -19,9 +19,14 @@ export default function App() {
 
 
 	const selectFeature = async (item) => {
-    setSelectedFeatureId(item.id)
-    const feature = await getFeatureById(item.id)
-    setSelectedFeature(feature)
+    if (item) {
+      setSelectedFeatureId(item.id)
+      const feature = await getFeatureById(item.id)
+      setSelectedFeature(feature)
+    } else {
+      setSelectedFeatureId(null)
+      setSelectedFeature(null)
+    }
 	}
 
 	return (
@@ -39,8 +44,6 @@ export default function App() {
               items={sortedWaters}
               selectItem={selectFeature}
               selectedItemId={selectedFeatureId}
-              getName={getFeatureName}
-              getKey={getFeatureId}
             />
           : <LoadingSpinner />
         }
