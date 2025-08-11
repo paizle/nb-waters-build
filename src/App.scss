@@ -45,10 +45,9 @@ html, body {
     
 	.Sidebar {
 		min-width: 18em;
-		
+		flex-basis: 40%;
     @screen sm {
       flex-basis: 30%;
     }
-    flex-basis: 40%;
 	}
 }
