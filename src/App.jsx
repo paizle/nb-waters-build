@@ -1,40 +1,38 @@
 import './App.scss'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Layout from './Components/Layout/Layout'
 import Sidebar from './Components/Sidebar/Sidebar'
 import LoadingSpinner from './Components/LoadingSpinner/LoadingSpinner'
 import InstallButton from './Components/InstallAppButton'
 import MapView from './Components/Map/MapView'
 import SelectWater from './Components/SelectWater/SelectWater'
-import { getFeatureId, getFeatureName } from './Util/featureGetters'
-
 import useRecords from './Hooks/useIdb'
 
 export default function App() {
-  const [selectedFeature, setSelectedFeature] = useState()
 
   const [selectedFeatureId, setSelectedFeatureId] = useState()
 
+  const [selectedFeature, setSelectedFeature] = useState()
+
   const { sortedWaters, getFeatureById, getFeaturesWithinDistance } = useRecords();
 
-
-	const selectFeature = async (item) => {
-    if (item) {
-      setSelectedFeatureId(item.id)
-      const feature = await getFeatureById(item.id)
-      setSelectedFeature(feature)
-    } else {
-      setSelectedFeatureId(null)
-      setSelectedFeature(null)
+  useEffect(() => {
+    const selectFeature = async (featureId) => {
+      if (featureId) {
+        const feature = await getFeatureById(featureId)
+        setSelectedFeature(feature)
+      } else {
+        setSelectedFeature(null)
+      }
     }
-	}
+    selectFeature(selectedFeatureId)
+  }, [selectedFeatureId, getFeatureById])
 
 	return (
 		<Layout className="WatersMap">
-
       <MapView 
         selectedFeature={selectedFeature}
-        selectFeature={selectFeature}
+        selectFeature={(item) => setSelectedFeatureId(item.id)}
         getFeaturesWithinDistance={getFeaturesWithinDistance}
       />
       <Sidebar>
@@ -42,7 +40,7 @@ export default function App() {
         {sortedWaters.length 
           ? <SelectWater
               items={sortedWaters}
-              selectItem={selectFeature}
+              selectItemId={(id) => setSelectedFeatureId(id)}
               selectedItemId={selectedFeatureId}
             />
           : <LoadingSpinner />

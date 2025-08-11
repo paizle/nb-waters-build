@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   getSortedWaterNames,
   dbPromise,
   waterFeaturesTable,
   featureCentroidsTable,
 } from '../IDB/index';
-
-import { getFeatureId } from '../Util/featureGetters';
 
 import { haversineDistance } from '../Util/coordinates';
 
@@ -18,21 +16,24 @@ export default function useRecords() {
   }, []);
 
   // Lookup a single water feature by OBJECTID
-  async function getFeatureById(id) {
+  const getFeatureById = useCallback(async (id) => {
     const db = await dbPromise;
-    return db.get(waterFeaturesTable, Number(id)); // Ensure numeric ID
-  }
+    return db.get(waterFeaturesTable, Number(id));
+  }, []);
 
   // Find all features within X meters of a given point
-  async function getFeaturesWithinDistance(center, maxDistanceMeters) {
-    const db = await dbPromise;
-    const centroids = await db.getAll(featureCentroidsTable);
-    return await Promise.all(
-      centroids
-        .filter(({ centroid }) => haversineDistance(center, centroid) <= maxDistanceMeters)
-        .map((record) => getFeatureById(record.OBJECTID))
-    )
-  }
+  const getFeaturesWithinDistance = useCallback(
+    async (center, maxDistanceMeters) => {
+      const db = await dbPromise;
+      const centroids = await db.getAll(featureCentroidsTable);
+      return Promise.all(
+        centroids
+          .filter(({ centroid }) => haversineDistance(center, centroid) <= maxDistanceMeters)
+          .map((record) => getFeatureById(record.OBJECTID))
+      );
+    },
+    [getFeatureById]
+  );
 
   return {
     sortedWaters,

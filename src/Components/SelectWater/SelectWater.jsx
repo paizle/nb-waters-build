@@ -2,10 +2,11 @@ import './SelectWater.scss'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCombobox } from 'downshift'
 import { XCircleIcon } from '@heroicons/react/24/outline'
+import useDebounce from '../../Hooks/useDebounce'
 
 export default function FeatureSelect({
   items,
-  selectItem,
+  selectItemId,
   selectedItemId,
 }) {
 
@@ -13,77 +14,46 @@ export default function FeatureSelect({
 
   const [inputValue, setInputValue] = useState('')
 
-  const [shouldScroll, setShouldScroll] = useState(true)
+  const debouncedInputValue = useDebounce(inputValue, 500)
 
-  const scrollToSelection = () => {
-    if (shouldScroll) {
-      setTimeout(() => {
-        parentRef.current
-          .querySelector(`[data-id="${selectedItemId}"]`)
-          .scrollIntoView({ behavior: 'instant' });
-      }, 10)
-    } else {
-      setShouldScroll(true)
-    }
-  }
-
-  useEffect(() => {
-    if (parentRef.current && selectedItemId) {
-      scrollToSelection()
-    }
-  }, [parentRef.current, selectedItemId])
+  const scrollToSelected = useRef(null)
 
   const {
-      isOpen,
-      getLabelProps,
-      getMenuProps,
-      getInputProps,
-      getItemProps,
-      stateChangeTypes,
-    } = useCombobox({
-      onInputValueChange(e) {
-        const { stateChangeTypes } = useCombobox
-        if (e.type === stateChangeTypes.InputBlur) {
-          return
-        } else if (
-          e.type === stateChangeTypes.ItemClick ||
-          e.type === stateChangeTypes.InputKeyDownEnter
-        ) {
-          selectItem(e.selectedItem)
-        } else if (e.type === stateChangeTypes.InputChange) {
-          setInputValue(e.inputValue)
-        } else {
-          selectItem(e.selectedItem)
-        }
-      },
-      onSelectedItemChange: (e) => {
-        setShouldScroll(false)
-        selectItem(e.selectedItem)
-      },
-      inputValue,
-      items,
-      itemToString(item) {
-        return item ? item.name : ''
-      },
-    })
-
-  const getCustomItemProps = (options) => {
-    
-    const props = getItemProps(options)
-    
-    const newProps = {
-      ...props,
-      onMouseMove: null
-    }
-    
-    return newProps
-  }
-    
+    isOpen,
+    getLabelProps,
+    getMenuProps,
+    getInputProps,
+    getItemProps,
+  } = useCombobox({
+    onInputValueChange(e) {
+      const { stateChangeTypes } = useCombobox
+      if (e.type === stateChangeTypes.InputBlur) {
+        return
+      } else if (
+        e.type === stateChangeTypes.ItemClick ||
+        e.type === stateChangeTypes.InputKeyDownEnter
+      ) {
+        selectItemId(e.selectedItem.id)
+      } else if (e.type === stateChangeTypes.InputChange) {
+        setInputValue(e.inputValue)
+      } else {
+        selectItemId(e.selectedItem.id)
+      }
+    },
+    onSelectedItemChange: (e) => {
+      selectItemId(e.selectedItem.id)
+    },
+    inputValue,
+    items,
+    itemToString(item) {
+      return item ? item.name : ''
+    },
+  })
 
   const renderedItems = useMemo(() => {
-    const search = inputValue.toLowerCase().trim()
+    const search = debouncedInputValue.toLowerCase().trim()
 
-    const tempItems = search 
+    const tempItems = search
       ? items.filter((item) => search ? selectedItemId === item.id || item.name.toLowerCase().includes(search) : item)
       : items
 
@@ -93,29 +63,40 @@ export default function FeatureSelect({
           className={`${item.id === selectedItemId ? 'selected' : ''}`}
           key={item.id}
           data-id={item.id}
-          {...getCustomItemProps({ item, index: items.findIndex(i => i.id === item.id) })}
+          {...getItemProps({ item, index: items.findIndex(i => i.id === item.id) })}
         >
           {item.name}
         </button>
       ));
-  }, [items, selectedItemId, getItemProps, inputValue]);
+  }, [items, selectedItemId, getItemProps, debouncedInputValue]);
 
   const clearSelection = () => {
     if (inputValue) {
       setInputValue('')
-      scrollToSelection()
     } else {
-      selectItem(null)
+      selectItemId(null)
     }
   }
+
+  useEffect(() => {
+    if (parentRef.current && selectedItemId) {
+      if (scrollToSelected.current) {
+        clearTimeout(scrollToSelected.current)
+      }
+      scrollToSelected.current = setTimeout(() => {
+          scrollToSelected.current = null
+          parentRef.current
+            .querySelector(`[data-id="${selectedItemId}"]`)
+            .scrollIntoView({ behavior: 'instant' });
+        }, 10)
+    }
+  }, [selectedItemId, scrollToSelected, renderedItems])
 
   return (
     <div className={`SelectWater`} ref={parentRef}>
       <div className="input" {...getLabelProps()}>
-        
           <input
             placeholder={'Search by Water Name'}
-            
             {...getInputProps()}
           />
           <button
