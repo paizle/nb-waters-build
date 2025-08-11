@@ -2,6 +2,7 @@ import './SelectWater.scss'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCombobox } from 'downshift'
 import { XCircleIcon } from '@heroicons/react/24/outline'
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner'
 import useDebounce from '../../Hooks/useDebounce'
 
 export default function FeatureSelect({
@@ -11,6 +12,8 @@ export default function FeatureSelect({
 }) {
 
   const parentRef = useRef()
+
+  const [isWaiting, setIsWaiting] = useState(true)
 
   const [inputValue, setInputValue] = useState('')
 
@@ -50,6 +53,8 @@ export default function FeatureSelect({
     },
   })
 
+  
+
   const renderedItems = useMemo(() => {
     const search = debouncedInputValue.toLowerCase().trim()
 
@@ -69,6 +74,15 @@ export default function FeatureSelect({
         </button>
       ));
   }, [items, selectedItemId, getItemProps, debouncedInputValue]);
+
+  useEffect(() => {
+    if (inputValue === debouncedInputValue) {
+      setIsWaiting(false)
+    } else {
+      setIsWaiting(true)
+    }
+    
+  }, [inputValue, debouncedInputValue, renderedItems])
 
   const clearSelection = () => {
     if (inputValue) {
@@ -105,7 +119,11 @@ export default function FeatureSelect({
             type="button"
             onClick={clearSelection}
           >
-            <XCircleIcon />
+            {isWaiting 
+              ? <LoadingSpinner />
+              : <XCircleIcon /> 
+            }
+            
           </button>
       </div>
     

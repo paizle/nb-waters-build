@@ -36,6 +36,14 @@
 				width: 1.25em;
 				height: 1.25em;
 			}
+      .LoadingSpinner {
+        width: 1em;
+        height: 1em;
+        margin: 0;
+        position: absolute;
+        right: 2px;
+        top: 9px;
+      }
     }
   }
   .menu {
@@ -54,13 +62,13 @@
       line-height: 1;
       border-radius: .25em;
       padding: .25em;
-      border: 1px solid transparent;
       &:hover {
-        border: 1px solid black;
+        text-decoration: underline;
       }
       &.selected {
         background-color: SteelBlue;
         color: white;
+        cursor: default;
       }
     }
   }
