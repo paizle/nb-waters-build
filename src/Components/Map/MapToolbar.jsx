@@ -4,6 +4,7 @@ import {
   ViewfinderCircleIcon,
   ArrowUpIcon,
   CheckCircleIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { bearing } from '../../Util/coordinates'
 
@@ -18,7 +19,7 @@ const TRACKING_MIN_ZOOM = 13
  *   the current map center toward it (or a "located" icon when it is already in
  *   view), plus its name. Clicking the indicator re-frames the map onto it.
  */
-export default function MapToolbar({ map, geolocation, selectedItem, mapView, onFocusSelected }) {
+export default function MapToolbar({ map, geolocation, selectedItem, mapView, onFocusSelected, onClearSelected }) {
   const { isAvailable, isEnabled, enable, isTracking, setIsTracking, position } = geolocation
   const pendingSnapRef = useRef(false)
 
@@ -102,20 +103,32 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
       )}
 
       {showIndicator && (
-        <button
-          type="button"
-          className="MapToolbar-pointer"
-          onClick={onFocusSelected}
-          aria-label={`Go to ${selectedItem.name}`}
-          title={inView ? `${selectedItem.name} is in view` : `Go to ${selectedItem.name}`}
-        >
-          {inView ? (
-            <CheckCircleIcon className="MapToolbar-here" />
-          ) : (
-            <ArrowUpIcon className="MapToolbar-arrow" style={{ transform: `rotate(${angle}deg)` }} />
-          )}
-          <span className="MapToolbar-name">{selectedItem.name}</span>
-        </button>
+        <div className="MapToolbar-selection">
+          <button
+            type="button"
+            className="MapToolbar-pointer"
+            onClick={onFocusSelected}
+            aria-label={`Go to ${selectedItem.name}`}
+            title={inView ? `${selectedItem.name} is in view` : `Go to ${selectedItem.name}`}
+          >
+            {inView ? (
+              <CheckCircleIcon className="MapToolbar-here" />
+            ) : (
+              <ArrowUpIcon className="MapToolbar-arrow" style={{ transform: `rotate(${angle}deg)` }} />
+            )}
+            <span className="MapToolbar-name">{selectedItem.name}</span>
+          </button>
+          <button
+            type="button"
+            className="MapToolbar-cancel"
+            onClick={onClearSelected}
+            aria-label="Clear selected water"
+            title="Clear selection"
+          >
+            <XMarkIcon />
+            <span>Cancel</span>
+          </button>
+        </div>
       )}
     </div>
   )

@@ -89,6 +89,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
         selectedItem={selectedItem}
         mapView={mapView}
         onFocusSelected={() => setFocusToken((token) => token + 1)}
+        onClearSelected={() => onSelect(null)}
       />
     </div>
   )

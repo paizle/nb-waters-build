@@ -5,9 +5,9 @@ import useFeatureGeometry from '../../Hooks/useFeatureGeometry'
 
 const SELECTED_STYLE = {
   weight: 3,
-  color: '#b45309',
-  fillColor: '#f59e0b',
-  fillOpacity: 0.35,
+  color: '#0d9488',
+  fillColor: '#2dd4bf',
+  fillOpacity: 0.4,
 }
 
 /**

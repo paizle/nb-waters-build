@@ -153,6 +153,15 @@
     }
   }
 
+  .MapToolbar-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    border-radius: 0.6rem;
+    overflow: hidden;
+  }
+
   .MapToolbar-pointer {
     display: flex;
     flex-direction: column;
@@ -161,27 +170,27 @@
     padding: 0.45rem 0.5rem;
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid #cbd5e1;
-    border-radius: 0.6rem;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    border-bottom: none;
+    border-radius: 0;
     max-width: 9rem;
     cursor: pointer;
 
     &:hover {
       background: #ffffff;
-      border-color: #b45309;
+      border-color: #0d9488;
     }
 
     .MapToolbar-arrow {
       width: 1.6rem;
       height: 1.6rem;
-      color: #b45309;
+      color: #0d9488;
       transition: transform 0.25s ease-out;
     }
 
     .MapToolbar-here {
       width: 1.6rem;
       height: 1.6rem;
-      color: #16a34a;
+      color: #0d9488;
     }
 
     .MapToolbar-name {
@@ -193,6 +202,32 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+    }
+  }
+
+  .MapToolbar-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+
+    svg {
+      width: 0.85rem;
+      height: 0.85rem;
+    }
+
+    &:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
     }
   }
 }
