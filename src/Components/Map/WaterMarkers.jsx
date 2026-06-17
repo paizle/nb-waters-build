@@ -11,27 +11,51 @@ function blobRadius(count) {
   return Math.round(14 + Math.log2(count + 1) * 6)
 }
 
+/** Screen-space cell for staggered (brick) binning — odd rows shift half a cell right. */
+function staggeredCell(p) {
+  const row = Math.floor(p.y / CLUSTER_CELL_PX)
+  const stagger = (row & 1) * (CLUSTER_CELL_PX / 2)
+  const col = Math.floor((p.x - stagger) / CLUSTER_CELL_PX)
+  return { col, row }
+}
+
+function staggeredCellCenter(map, col, row) {
+  const stagger = (row & 1) * (CLUSTER_CELL_PX / 2)
+  const x = (col + 0.5) * CLUSTER_CELL_PX + stagger
+  const y = (row + 0.5) * CLUSTER_CELL_PX
+  return map.containerPointToLatLng(L.point(x, y))
+}
+
 function groupIntoClusters(map, items, paddedBounds) {
   const buckets = new Map()
   for (const item of items) {
     if (!paddedBounds.contains([item.lat, item.lng])) continue
     const p = map.latLngToContainerPoint([item.lat, item.lng])
-    const key = `${Math.floor(p.x / CLUSTER_CELL_PX)}_${Math.floor(p.y / CLUSTER_CELL_PX)}`
+    const { col, row } = staggeredCell(p)
+    const key = `${col}_${row}`
     let bucket = buckets.get(key)
     if (!bucket) {
-      bucket = { items: [], sumLat: 0, sumLng: 0 }
+      bucket = { col, row, items: [], sumLat: 0, sumLng: 0 }
       buckets.set(key, bucket)
     }
     bucket.items.push(item)
     bucket.sumLat += item.lat
     bucket.sumLng += item.lng
   }
-  return [...buckets.values()].map((b) => ({
-    items: b.items,
-    count: b.items.length,
-    lat: b.sumLat / b.items.length,
-    lng: b.sumLng / b.items.length,
-  }))
+  return [...buckets.values()].map((b) => {
+    const count = b.items.length
+    const focusLat = b.sumLat / count
+    const focusLng = b.sumLng / count
+    const cell = staggeredCellCenter(map, b.col, b.row)
+    return {
+      items: b.items,
+      count,
+      lat: cell.lat,
+      lng: cell.lng,
+      focusLat,
+      focusLng,
+    }
+  })
 }
 
 function clusterKey(cluster) {
@@ -64,7 +88,7 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect, isT
     if (!bounds || zoom == null || zoom >= MARKER_MAX_ZOOM || !items.length) return
 
     const zoomToCluster = (cluster) => {
-      map.setView([cluster.lat, cluster.lng], Math.min(map.getZoom() + 2, map.getMaxZoom()), {
+      map.setView([cluster.focusLat, cluster.focusLng], Math.min(map.getZoom() + 2, map.getMaxZoom()), {
         animate: true,
       })
     }
