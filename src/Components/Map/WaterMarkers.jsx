@@ -2,16 +2,11 @@ import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 
-// Pixel size of the screen-space clustering grid. Smaller cells -> more, more
-// densely overlapping blobs, which is what produces the "bleeding" density look.
 const CLUSTER_CELL_PX = 34
-// Above this zoom the real outlines (ViewportOutlines) take over, so the blobs
-// are hidden to avoid clutter.
 const MARKER_MAX_ZOOM = 12
-// At most this many names are listed in a hover popup before we offer "Zoom in".
 const NAME_LIMIT = 3
+const TAP_AGAIN_MS = 600
 
-/** Radius in pixels for a blob representing `count` waters. */
 function blobRadius(count) {
   return Math.round(14 + Math.log2(count + 1) * 6)
 }
@@ -39,23 +34,26 @@ function groupIntoClusters(map, items, paddedBounds) {
   }))
 }
 
+function clusterKey(cluster) {
+  return `${cluster.lat.toFixed(5)}_${cluster.lng.toFixed(5)}_${cluster.count}`
+}
+
 /**
  * Renders waters as soft, overlapping cyan gradient blobs (clustered in
- * screen space). Overlap intensifies colour to indicate density.
+ * screen space). Desktop: hover popup. Touch: tap opens popup; tap again zooms/selects.
  */
-export default function WaterMarkers({ items, mapView, selectedId, onSelect }) {
+export default function WaterMarkers({ items, mapView, selectedId, onSelect, isTouch }) {
   const map = useMap()
   const groupRef = useRef(null)
-  // Keep the latest onSelect without forcing a full rebuild when it changes.
   const onSelectRef = useRef(onSelect)
+  const lastTapRef = useRef({ key: null, time: 0 })
   onSelectRef.current = onSelect
 
   if (!groupRef.current) groupRef.current = L.layerGroup()
 
   useEffect(() => {
-    const group = groupRef.current
-    group.addTo(map)
-    return () => group.remove()
+    groupRef.current.addTo(map)
+    return () => groupRef.current.remove()
   }, [map])
 
   useEffect(() => {
@@ -76,12 +74,9 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect }) {
     for (const cluster of clusters) {
       const radius = blobRadius(cluster.count)
       const size = radius * 2
-      // The visible blob is decorative (pointer-events: none) and may overlap
-      // neighbours freely; only this small centered core captures hover/click,
-      // which prevents overlapping blobs from fighting over the hover state.
-      // Larger hit core (invisible padding around the blob) for easier hover.
       const hit = Math.max(28, Math.min(size + 12, 44))
       const isSelected = cluster.count === 1 && cluster.items[0].id === selectedId
+      const key = clusterKey(cluster)
 
       const icon = L.divIcon({
         className: 'water-blob-icon',
@@ -102,20 +97,46 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect }) {
         className: 'water-popup-wrap',
       })
 
-      marker.on('mouseover', () => marker.openPopup())
+      if (!isTouch) {
+        marker.on('mouseover', () => marker.openPopup())
+      } else {
+        marker.on('touchstart', () => {
+          marker.getElement()?.classList.add('tapped')
+        })
+        marker.on('touchend touchcancel', () => {
+          window.setTimeout(() => marker.getElement()?.classList.remove('tapped'), 200)
+        })
+      }
+
       marker.on('click', () => {
+        const now = Date.now()
+        const last = lastTapRef.current
+        const isRepeat = last.key === key && now - last.time < TAP_AGAIN_MS
+
+        if (isTouch) {
+          if (isRepeat) {
+            if (cluster.count === 1) onSelectRef.current(cluster.items[0].id)
+            else zoomToCluster(cluster)
+            marker.closePopup()
+            lastTapRef.current = { key: null, time: 0 }
+          } else {
+            marker.openPopup()
+            lastTapRef.current = { key, time: now }
+          }
+          return
+        }
+
         if (cluster.count === 1) onSelectRef.current(cluster.items[0].id)
         else zoomToCluster(cluster)
       })
 
       marker.addTo(group)
     }
-  }, [map, items, mapView, selectedId])
+  }, [map, items, mapView, selectedId, isTouch])
 
   return null
 }
 
-/** Builds interactive popup DOM for a cluster (names list or "Zoom in" link). */
 function buildPopupContent(cluster, zoomToCluster, onSelectRef) {
   const root = L.DomUtil.create('div', 'water-popup')
 
@@ -136,7 +157,7 @@ function buildPopupContent(cluster, zoomToCluster, onSelectRef) {
     label.textContent = `${cluster.count} waters`
     const link = L.DomUtil.create('a', 'water-popup-zoom', root)
     link.href = '#'
-    link.textContent = 'Zoom in'
+    link.textContent = 'Tap again to zoom in'
     L.DomEvent.on(link, 'click', (e) => {
       L.DomEvent.preventDefault(e)
       zoomToCluster(cluster)

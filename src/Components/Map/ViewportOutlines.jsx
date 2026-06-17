@@ -20,12 +20,13 @@ const HOVER_STYLE = {
 /**
  * Draws actual (simplified) water outlines for the current viewport once the
  * user has zoomed in far enough. Thicker strokes improve hit targets; hover
- * highlights with the selected-water teal to show clickability.
+ * or touch highlights with the selected-water teal to show clickability.
  */
 export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouch }) {
   const map = useMap()
   const layerRef = useRef(null)
   const onSelectRef = useRef(onSelect)
+  const highlightRef = useRef(null)
   onSelectRef.current = onSelect
   const features = useViewportGeometry(mapView.bounds, mapView.zoom)
 
@@ -50,10 +51,24 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
     const layer = L.geoJSON(collection, {
       style: OUTLINE_STYLE,
       onEachFeature: (feature, lyr) => {
+        const resetStyle = () => {
+          if (highlightRef.current === lyr) highlightRef.current = null
+          lyr.setStyle(OUTLINE_STYLE)
+        }
+
         lyr.on('click', () => onSelectRef.current(feature.properties.id))
-        if (!isTouch) {
+
+        if (isTouch) {
+          lyr.on('touchstart', () => {
+            highlightRef.current = lyr
+            lyr.setStyle(HOVER_STYLE)
+          })
+          lyr.on('touchend touchcancel', () => {
+            window.setTimeout(resetStyle, 200)
+          })
+        } else {
           lyr.on('mouseover', () => lyr.setStyle(HOVER_STYLE))
-          lyr.on('mouseout', () => lyr.setStyle(OUTLINE_STYLE))
+          lyr.on('mouseout', resetStyle)
           lyr.bindTooltip(feature.properties.name, { sticky: true })
         }
       },

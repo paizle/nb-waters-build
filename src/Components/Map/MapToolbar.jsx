@@ -7,33 +7,44 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { bearing } from '../../Util/coordinates'
+import MapControlButton from './MapControlButton'
 
 const TRACKING_MIN_ZOOM = 13
+
+function panToGps(map, position) {
+  map.setView([position.lat, position.lng], Math.max(map.getZoom(), TRACKING_MIN_ZOOM), {
+    animate: true,
+  })
+}
 
 /**
  * On-map control area (top-right). Stack order:
  * 1. Selected-water indicator + cancel
- * 2. GPS tracking toggle (below selection)
- * 3. Snap-to-location
+ * 2. Snap to GPS (tracking)
+ * 3. Move to my location (one-shot)
  */
-export default function MapToolbar({ map, geolocation, selectedItem, mapView, onFocusSelected, onClearSelected }) {
+export default function MapToolbar({
+  map,
+  geolocation,
+  selectedItem,
+  mapView,
+  isTouch,
+  onFocusSelected,
+  onClearSelected,
+}) {
   const { isAvailable, isEnabled, enable, isTracking, setIsTracking, position } = geolocation
-  const pendingSnapRef = useRef(false)
+  const pendingPanRef = useRef(false)
+
+  useEffect(() => {
+    if (!map || !position || !pendingPanRef.current) return
+    pendingPanRef.current = false
+    panToGps(map, position)
+  }, [map, position])
 
   useEffect(() => {
     if (!map || !isTracking || !position) return
-    map.setView([position.lat, position.lng], Math.max(map.getZoom(), TRACKING_MIN_ZOOM), {
-      animate: true,
-    })
+    panToGps(map, position)
   }, [map, isTracking, position])
-
-  useEffect(() => {
-    if (!map || !position || !pendingSnapRef.current) return
-    pendingSnapRef.current = false
-    map.setView([position.lat, position.lng], Math.max(map.getZoom(), TRACKING_MIN_ZOOM), {
-      animate: true,
-    })
-  }, [map, position])
 
   useEffect(() => {
     if (!map) return
@@ -44,24 +55,25 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
     }
   }, [map, setIsTracking])
 
-  const handleGps = () => {
-    if (!isEnabled) {
-      enable()
-      setIsTracking(true)
+  const requestPan = () => {
+    if (!map) return
+    if (position) {
+      panToGps(map, position)
     } else {
-      setIsTracking(!isTracking)
+      pendingPanRef.current = true
     }
   }
 
-  const handleSnap = () => {
-    if (!isEnabled) {
-      enable()
-      pendingSnapRef.current = true
-    } else if (position) {
-      map?.setView([position.lat, position.lng], Math.max(map.getZoom(), TRACKING_MIN_ZOOM), {
-        animate: true,
-      })
-    }
+  const handleSnapToGps = () => {
+    if (!isEnabled) enable()
+    setIsTracking(true)
+    requestPan()
+  }
+
+  const handleMoveToLocation = () => {
+    if (!isEnabled) enable()
+    setIsTracking(false)
+    requestPan()
   }
 
   const bounds = mapView?.bounds
@@ -102,25 +114,24 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
 
       {isAvailable && (
         <div className="MapToolbar-buttons">
-          <button
-            type="button"
-            className={`MapToolbar-button ${isTracking ? 'active' : ''}`}
-            onClick={handleGps}
-            aria-pressed={isTracking}
-            aria-label={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
-            title={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
-          >
-            <MapPinIcon />
-          </button>
-          <button
-            type="button"
-            className="MapToolbar-button"
-            onClick={handleSnap}
-            aria-label="Snap to my location"
-            title="Snap to my location"
-          >
-            <ViewfinderCircleIcon />
-          </button>
+          <MapControlButton
+            icon={MapPinIcon}
+            label="Snap to GPS"
+            active={isTracking}
+            isTouch={isTouch}
+            onAction={handleSnapToGps}
+            labelPosition="below"
+            ariaLabel="Snap to GPS"
+          />
+          <MapControlButton
+            icon={ViewfinderCircleIcon}
+            label="Move to my location"
+            active={false}
+            isTouch={isTouch}
+            onAction={handleMoveToLocation}
+            labelPosition="below"
+            ariaLabel="Move to my location"
+          />
         </div>
       )}
     </div>

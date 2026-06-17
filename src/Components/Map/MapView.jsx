@@ -9,7 +9,7 @@ import ViewportOutlines from './ViewportOutlines'
 import SelectedWater from './SelectedWater'
 import PositionPin from './PositionPin'
 import MapToolbar from './MapToolbar'
-import NearestWaters from './NearestWaters'
+import { NearestWatersPanel, NearestWatersOverlay } from './NearestWaters'
 
 const MAP_CONFIG = {
   bounds: [
@@ -40,6 +40,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
   const [map, setMap] = useState(null)
   const [mapView, setMapView] = useState({ bounds: null, zoom: null })
   const [focusToken, setFocusToken] = useState(0)
+  const [nearestActive, setNearestActive] = useState(false)
 
   const geolocation = useGeolocation()
   const deviceProperties = useDeviceProperties()
@@ -70,6 +71,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
           mapView={mapView}
           selectedId={selectedItem?.id ?? null}
           onSelect={onSelect}
+          isTouch={isTouch}
         />
 
         <ViewportOutlines
@@ -84,13 +86,23 @@ export default function MapView({ items, selectedItem, onSelect }) {
         <PositionPin position={geolocation.isEnabled ? geolocation.position : null} />
       </MapContainer>
 
+      <NearestWatersOverlay
+        map={map}
+        mapView={mapView}
+        items={items}
+        active={nearestActive}
+        onSelect={onSelect}
+      />
+
       <div className="MapControls-right">
-        <NearestWaters
-          map={map}
-          items={items}
+        <NearestWatersPanel
           mapView={mapView}
+          items={items}
           selectedId={selectedItem?.id ?? null}
           onSelect={onSelect}
+          isTouch={isTouch}
+          active={nearestActive}
+          onActiveChange={setNearestActive}
         />
 
         <MapToolbar
@@ -98,6 +110,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
           geolocation={geolocation}
           selectedItem={selectedItem}
           mapView={mapView}
+          isTouch={isTouch}
           onFocusSelected={() => setFocusToken((token) => token + 1)}
           onClearSelected={() => onSelect(null)}
         />

@@ -43,7 +43,8 @@
     }
   }
 
-  &:hover {
+  &:hover,
+  &.tapped {
     z-index: 1000 !important;
 
     .water-blob {
@@ -115,13 +116,14 @@
   gap: 0.5rem;
 }
 
-.NearestWaters-panel {
+// Shared icon button with animated label popper
+.MapControlButton {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.35rem;
 
-  .NearestWaters-toggle {
+  .MapControlButton-icon {
     width: 2.5rem;
     height: 2.5rem;
     display: inline-flex;
@@ -133,75 +135,147 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
     cursor: pointer;
     color: #334155;
+    flex-shrink: 0;
 
     svg {
       width: 1.4rem;
       height: 1.4rem;
     }
 
-    &.active {
-      background: #0891b2;
-      border-color: #0e7490;
-      color: #ffffff;
+    &:hover {
+      color: #0f172a;
     }
   }
 
-  .NearestWaters-list {
-    background: rgba(255, 255, 255, 0.97);
+  &.active .MapControlButton-icon {
+    background: #0891b2;
+    border-color: #0e7490;
+    color: #ffffff;
+  }
+
+  .MapControlButton-label {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid #cbd5e1;
-    border-radius: 0.6rem;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+    opacity: 0;
+    transform: translateX(12px);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.25s ease-out;
+    pointer-events: none;
+    z-index: 1;
+
+    &.animate-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  &.left .MapControlButton-label {
+    right: calc(100% + 0.45rem);
+    top: 50%;
+    margin-top: -0.85rem;
+  }
+
+  &.below .MapControlButton-label {
+    top: calc(100% + 0.35rem);
+    right: 0;
+  }
+
+  .MapControlButton-children {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    z-index: 2;
+    animation: MapControlButton-slide-in 0.22s ease-out;
+  }
+
+  &.left .MapControlButton-children {
+    top: calc(100% + 0.25rem);
+    right: 0;
     min-width: 11rem;
-    max-width: 14rem;
-    overflow: hidden;
+  }
+}
 
-    .NearestWaters-heading {
-      padding: 0.45rem 0.65rem;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+@keyframes MapControlButton-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.NearestWaters-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.NearestWaters-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #cbd5e1;
+  border-radius: 0.6rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+  min-width: 11rem;
+  max-width: 14rem;
+  overflow: hidden;
+
+  li button {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.65rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+      background: #e0f2fe;
+    }
+
+    &.selected {
+      background: #ccfbf1;
+    }
+
+    .dir-arrow {
+      width: 0.85rem;
+      height: 0.85rem;
+      flex-shrink: 0;
+      color: #0891b2;
+    }
+
+    .name {
+      flex: 1;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.2;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dist {
+      flex-shrink: 0;
+      font-size: 0.68rem;
       color: #64748b;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    li button {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.1rem;
-      padding: 0.45rem 0.65rem;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      text-align: left;
-
-      &:hover {
-        background: #e0f2fe;
-      }
-
-      &.selected {
-        background: #ccfbf1;
-      }
-
-      .name {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #0f172a;
-        line-height: 1.2;
-      }
-
-      .dist {
-        font-size: 0.68rem;
-        color: #64748b;
-      }
     }
   }
 }
@@ -269,36 +343,8 @@
   .MapToolbar-buttons {
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 0.4rem;
-  }
-
-  .MapToolbar-button {
-    width: 2.5rem;
-    height: 2.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.6rem;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
-    cursor: pointer;
-    color: #334155;
-
-    svg {
-      width: 1.4rem;
-      height: 1.4rem;
-    }
-
-    &:hover {
-      color: #0f172a;
-    }
-
-    &.active {
-      background: #0891b2;
-      border-color: #0e7490;
-      color: #ffffff;
-    }
   }
 
   .MapToolbar-selection {
