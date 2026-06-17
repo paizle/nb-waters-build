@@ -11,10 +11,9 @@ const SELECTED_STYLE = {
 }
 
 /**
- * Draws the outline for the currently selected water (geometry loaded on
- * demand from its shard). It does NOT move the map on selection; the map only
- * re-frames the water when `focusToken` changes (i.e. when the toolbar
- * indicator is clicked).
+ * Draws the outline for the currently selected water and pans the map to fit it
+ * whenever the selection changes (combobox, map click, or nearest-waters pick).
+ * `focusToken` allows re-framing from the toolbar indicator button.
  */
 export default function SelectedWater({ item, focusToken }) {
   const map = useMap()
@@ -42,8 +41,7 @@ export default function SelectedWater({ item, focusToken }) {
     layer.addTo(map)
     layerRef.current = layer
 
-    // Honour a focus request that arrived before the geometry finished loading.
-    if (pendingFocusRef.current) {
+    if (pendingFocusRef.current || item) {
       pendingFocusRef.current = false
       fitToLayer()
     }
@@ -57,8 +55,19 @@ export default function SelectedWater({ item, focusToken }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, feature])
 
+  // Re-frame when selection changes before geometry has loaded.
   useEffect(() => {
-    if (!focusToken) return // ignore the initial render
+    if (!item) return
+    if (layerRef.current) {
+      fitToLayer()
+    } else {
+      pendingFocusRef.current = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id])
+
+  useEffect(() => {
+    if (!focusToken) return
     if (layerRef.current) {
       fitToLayer()
     } else {

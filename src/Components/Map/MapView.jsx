@@ -9,6 +9,7 @@ import ViewportOutlines from './ViewportOutlines'
 import SelectedWater from './SelectedWater'
 import PositionPin from './PositionPin'
 import MapToolbar from './MapToolbar'
+import NearestWaters from './NearestWaters'
 
 const MAP_CONFIG = {
   bounds: [
@@ -83,14 +84,24 @@ export default function MapView({ items, selectedItem, onSelect }) {
         <PositionPin position={geolocation.isEnabled ? geolocation.position : null} />
       </MapContainer>
 
-      <MapToolbar
-        map={map}
-        geolocation={geolocation}
-        selectedItem={selectedItem}
-        mapView={mapView}
-        onFocusSelected={() => setFocusToken((token) => token + 1)}
-        onClearSelected={() => onSelect(null)}
-      />
+      <div className="MapControls-right">
+        <NearestWaters
+          map={map}
+          items={items}
+          mapView={mapView}
+          selectedId={selectedItem?.id ?? null}
+          onSelect={onSelect}
+        />
+
+        <MapToolbar
+          map={map}
+          geolocation={geolocation}
+          selectedItem={selectedItem}
+          mapView={mapView}
+          onFocusSelected={() => setFocusToken((token) => token + 1)}
+          onClearSelected={() => onSelect(null)}
+        />
+      </div>
     </div>
   )
 }

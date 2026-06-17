@@ -4,20 +4,29 @@ import L from 'leaflet'
 import useViewportGeometry from '../../Hooks/useViewportGeometry'
 
 const OUTLINE_STYLE = {
-  weight: 1.5,
+  weight: 2.5,
   color: '#0891b2',
   fillColor: '#22d3ee',
   fillOpacity: 0.25,
 }
 
+const HOVER_STYLE = {
+  weight: 4,
+  color: '#0d9488',
+  fillColor: '#2dd4bf',
+  fillOpacity: 0.35,
+}
+
 /**
  * Draws actual (simplified) water outlines for the current viewport once the
- * user has zoomed in far enough. Geometry is lazily fetched and cached by the
- * data layer via `useViewportGeometry`.
+ * user has zoomed in far enough. Thicker strokes improve hit targets; hover
+ * highlights with the selected-water teal to show clickability.
  */
 export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouch }) {
   const map = useMap()
   const layerRef = useRef(null)
+  const onSelectRef = useRef(onSelect)
+  onSelectRef.current = onSelect
   const features = useViewportGeometry(mapView.bounds, mapView.zoom)
 
   useEffect(() => {
@@ -41,8 +50,12 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
     const layer = L.geoJSON(collection, {
       style: OUTLINE_STYLE,
       onEachFeature: (feature, lyr) => {
-        lyr.on('click', () => onSelect(feature.properties.id))
-        if (!isTouch) lyr.bindTooltip(feature.properties.name, { sticky: true })
+        lyr.on('click', () => onSelectRef.current(feature.properties.id))
+        if (!isTouch) {
+          lyr.on('mouseover', () => lyr.setStyle(HOVER_STYLE))
+          lyr.on('mouseout', () => lyr.setStyle(OUTLINE_STYLE))
+          lyr.bindTooltip(feature.properties.name, { sticky: true })
+        }
       },
     })
     layer.addTo(map)
@@ -54,7 +67,7 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
         layerRef.current = null
       }
     }
-  }, [map, features, selectedId, onSelect, isTouch])
+  }, [map, features, selectedId, isTouch])
 
   return null
 }

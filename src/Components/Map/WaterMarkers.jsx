@@ -40,10 +40,8 @@ function groupIntoClusters(map, items, paddedBounds) {
 }
 
 /**
- * Renders waters as soft, overlapping orange gradient blobs (clustered in
- * screen space). Overlap intensifies the colour, so denser areas read as a
- * darker orange. Hovering reveals the blob outline and a popup that lists the
- * water names (<= 3) or offers a "Zoom in" link.
+ * Renders waters as soft, overlapping cyan gradient blobs (clustered in
+ * screen space). Overlap intensifies colour to indicate density.
  */
 export default function WaterMarkers({ items, mapView, selectedId, onSelect }) {
   const map = useMap()
@@ -81,7 +79,8 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect }) {
       // The visible blob is decorative (pointer-events: none) and may overlap
       // neighbours freely; only this small centered core captures hover/click,
       // which prevents overlapping blobs from fighting over the hover state.
-      const hit = Math.max(16, Math.min(size, 26))
+      // Larger hit core (invisible padding around the blob) for easier hover.
+      const hit = Math.max(28, Math.min(size + 12, 44))
       const isSelected = cluster.count === 1 && cluster.items[0].id === selectedId
 
       const icon = L.divIcon({

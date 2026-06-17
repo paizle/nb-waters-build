@@ -11,19 +11,15 @@ import { bearing } from '../../Util/coordinates'
 const TRACKING_MIN_ZOOM = 13
 
 /**
- * On-map control area (rendered as an HTML overlay, not a Leaflet control).
- * - GPS button: requests location permission only on first click, then toggles
- *   continuous tracking.
- * - Snap button: centers the map on the current position.
- * - Direction indicator: when a water is selected, shows an arrow pointing from
- *   the current map center toward it (or a "located" icon when it is already in
- *   view), plus its name. Clicking the indicator re-frames the map onto it.
+ * On-map control area (top-right). Stack order:
+ * 1. Selected-water indicator + cancel
+ * 2. GPS tracking toggle (below selection)
+ * 3. Snap-to-location
  */
 export default function MapToolbar({ map, geolocation, selectedItem, mapView, onFocusSelected, onClearSelected }) {
   const { isAvailable, isEnabled, enable, isTracking, setIsTracking, position } = geolocation
   const pendingSnapRef = useRef(false)
 
-  // Follow the user while tracking is on.
   useEffect(() => {
     if (!map || !isTracking || !position) return
     map.setView([position.lat, position.lng], Math.max(map.getZoom(), TRACKING_MIN_ZOOM), {
@@ -31,7 +27,6 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
     })
   }, [map, isTracking, position])
 
-  // Center once when a snap was requested before the first fix arrived.
   useEffect(() => {
     if (!map || !position || !pendingSnapRef.current) return
     pendingSnapRef.current = false
@@ -40,7 +35,6 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
     })
   }, [map, position])
 
-  // Dragging the map stops tracking.
   useEffect(() => {
     if (!map) return
     const stop = () => setIsTracking(false)
@@ -70,7 +64,6 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
     }
   }
 
-  // Direction indicator, relative to the current map center.
   const bounds = mapView?.bounds
   const showIndicator = selectedItem && bounds
   const inView = showIndicator && bounds.contains([selectedItem.lat, selectedItem.lng])
@@ -78,30 +71,6 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
 
   return (
     <div className="MapToolbar">
-      {isAvailable && (
-        <div className="MapToolbar-buttons">
-          <button
-            type="button"
-            className={`MapToolbar-button ${isTracking ? 'active' : ''}`}
-            onClick={handleGps}
-            aria-pressed={isTracking}
-            aria-label={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
-            title={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
-          >
-            <MapPinIcon />
-          </button>
-          <button
-            type="button"
-            className="MapToolbar-button"
-            onClick={handleSnap}
-            aria-label="Snap to my location"
-            title="Snap to my location"
-          >
-            <ViewfinderCircleIcon />
-          </button>
-        </div>
-      )}
-
       {showIndicator && (
         <div className="MapToolbar-selection">
           <button
@@ -127,6 +96,30 @@ export default function MapToolbar({ map, geolocation, selectedItem, mapView, on
           >
             <XMarkIcon />
             <span>Cancel</span>
+          </button>
+        </div>
+      )}
+
+      {isAvailable && (
+        <div className="MapToolbar-buttons">
+          <button
+            type="button"
+            className={`MapToolbar-button ${isTracking ? 'active' : ''}`}
+            onClick={handleGps}
+            aria-pressed={isTracking}
+            aria-label={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
+            title={isEnabled ? 'Toggle GPS tracking' : 'Enable GPS'}
+          >
+            <MapPinIcon />
+          </button>
+          <button
+            type="button"
+            className="MapToolbar-button"
+            onClick={handleSnap}
+            aria-label="Snap to my location"
+            title="Snap to my location"
+          >
+            <ViewfinderCircleIcon />
           </button>
         </div>
       )}
