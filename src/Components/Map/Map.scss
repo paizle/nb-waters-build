@@ -11,6 +11,23 @@
   }
 }
 
+.position-pin-icon {
+  background: transparent;
+  border: none;
+
+  .position-pin-marker {
+    display: block;
+    width: 22px;
+    height: 22px;
+    margin: 0 auto;
+    background: #dc2626;
+    border: 2px solid #991b1b;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+  }
+}
+
 // Density blobs — same cyan palette as water outlines, low opacity so overlap
 // reads as density without overwhelming the map.
 .water-blob-icon {
@@ -118,10 +135,26 @@
 
 // Shared icon button with animated label popper
 .MapControlButton {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-self: flex-end;
+  width: fit-content;
+
+  .MapControlButton-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+    padding: 0.2rem;
+    margin: -0.2rem;
+  }
+
+  .MapControlButton-main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+  }
 
   .MapControlButton-icon {
     width: 2.5rem;
@@ -154,7 +187,6 @@
   }
 
   .MapControlButton-label {
-    position: absolute;
     white-space: nowrap;
     font-size: 0.75rem;
     font-weight: 600;
@@ -162,15 +194,14 @@
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid #cbd5e1;
     border-radius: 0.4rem;
-    padding: 0.3rem 0.55rem;
+    padding: 0.35rem 0.6rem;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
     opacity: 0;
     transform: translateX(12px);
     transition:
       opacity 0.2s ease-out,
       transform 0.25s ease-out;
-    pointer-events: none;
-    z-index: 1;
+    flex-shrink: 0;
 
     &.animate-in {
       opacity: 1;
@@ -178,29 +209,14 @@
     }
   }
 
-  &.left .MapControlButton-label {
-    right: calc(100% + 0.45rem);
-    top: 50%;
-    margin-top: -0.85rem;
-  }
-
-  &.below .MapControlButton-label {
-    top: calc(100% + 0.35rem);
-    right: 0;
-  }
-
   .MapControlButton-children {
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0;
-    z-index: 2;
     animation: MapControlButton-slide-in 0.22s ease-out;
   }
 
-  &.left .MapControlButton-children {
-    top: calc(100% + 0.25rem);
-    right: 0;
+  &.children-left .MapControlButton-children {
     min-width: 11rem;
+    max-width: 14rem;
+    align-self: flex-end;
   }
 }
 
@@ -337,7 +353,7 @@
   position: static;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
 
   .MapToolbar-buttons {

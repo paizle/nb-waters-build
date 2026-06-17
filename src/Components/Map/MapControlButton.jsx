@@ -4,6 +4,7 @@ import { createElement, useCallback, useEffect, useRef, useState } from 'react'
  * Icon map control with animated label popper.
  * Desktop: hover reveals label (slides right→left), click fires action.
  * Touch: first tap reveals label; second tap fires action.
+ * Label, button, and optional list share one hover zone so nothing flickers off.
  */
 export default function MapControlButton({
   icon,
@@ -11,9 +12,11 @@ export default function MapControlButton({
   active = false,
   isTouch,
   onAction,
-  labelPosition = 'below',
+  labelPosition = 'left',
+  childrenPosition = 'below',
   className = '',
   ariaLabel,
+  actionOnFirstTap = false,
   children,
 }) {
   const [focused, setFocused] = useState(false)
@@ -56,13 +59,11 @@ export default function MapControlButton({
   }
 
   const handleClick = () => {
-    if (isTouch) {
+    if (isTouch && !actionOnFirstTap) {
       if (!focused) {
         setFocused(true)
         return
       }
-      onAction()
-      return
     }
     onAction()
   }
@@ -72,33 +73,39 @@ export default function MapControlButton({
   return (
     <div
       ref={rootRef}
-      className={`MapControlButton ${labelPosition} ${active ? 'active' : ''} ${popperVisible ? 'popper-open' : ''} ${className}`}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
+      className={`MapControlButton ${labelPosition} ${childrenPosition === 'left' ? 'children-left' : ''} ${active ? 'active' : ''} ${popperVisible ? 'popper-open' : ''} ${className}`}
     >
-      {popperVisible && (
-        <span
-          className={`MapControlButton-label ${labelAnimating ? 'animate-in' : ''}`}
-          onTransitionEnd={onLabelTransitionEnd}
-        >
-          {label}
-        </span>
-      )}
-
-      <button
-        type="button"
-        className="MapControlButton-icon"
-        onClick={handleClick}
-        aria-pressed={active}
-        aria-label={ariaLabel ?? label}
-        title={label}
+      <div
+        className="MapControlButton-zone"
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
       >
-        {createElement(icon, null)}
-      </button>
+        <div className="MapControlButton-main">
+          {popperVisible && (
+            <span
+              className={`MapControlButton-label ${labelAnimating ? 'animate-in' : ''}`}
+              onTransitionEnd={onLabelTransitionEnd}
+            >
+              {label}
+            </span>
+          )}
 
-      {listOpen && children && (
-        <div className="MapControlButton-children">{children}</div>
-      )}
+          <button
+            type="button"
+            className="MapControlButton-icon"
+            onClick={handleClick}
+            aria-pressed={active}
+            aria-label={ariaLabel ?? label}
+            title={label}
+          >
+            {createElement(icon, null)}
+          </button>
+        </div>
+
+        {listOpen && children && (
+          <div className="MapControlButton-children">{children}</div>
+        )}
+      </div>
     </div>
   )
 }

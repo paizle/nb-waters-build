@@ -108,6 +108,7 @@ export function NearestWatersPanel({
         isTouch={isTouch}
         onAction={handleAction}
         labelPosition="left"
+        childrenPosition="left"
         ariaLabel="Nearest waters to map center"
       >
         {list}

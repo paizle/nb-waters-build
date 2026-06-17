@@ -20,7 +20,7 @@ function panToGps(map, position) {
 /**
  * On-map control area (top-right). Stack order:
  * 1. Selected-water indicator + cancel
- * 2. Snap to GPS (tracking)
+ * 2. Lock to GPS (tracking)
  * 3. Move to my location (one-shot)
  */
 export default function MapToolbar({
@@ -32,7 +32,7 @@ export default function MapToolbar({
   onFocusSelected,
   onClearSelected,
 }) {
-  const { isAvailable, isEnabled, enable, isTracking, setIsTracking, position } = geolocation
+  const { isAvailable, requestFix, isTracking, setIsTracking, position } = geolocation
   const pendingPanRef = useRef(false)
 
   useEffect(() => {
@@ -56,23 +56,26 @@ export default function MapToolbar({
   }, [map, setIsTracking])
 
   const requestPan = () => {
-    if (!map) return
-    if (position) {
+    pendingPanRef.current = true
+    if (map && position) {
+      pendingPanRef.current = false
       panToGps(map, position)
-    } else {
-      pendingPanRef.current = true
     }
   }
 
-  const handleSnapToGps = () => {
-    if (!isEnabled) enable()
+  const handleLockToGps = () => {
+    if (isTracking) {
+      setIsTracking(false)
+      return
+    }
+    requestFix()
     setIsTracking(true)
     requestPan()
   }
 
   const handleMoveToLocation = () => {
-    if (!isEnabled) enable()
     setIsTracking(false)
+    requestFix()
     requestPan()
   }
 
@@ -116,12 +119,13 @@ export default function MapToolbar({
         <div className="MapToolbar-buttons">
           <MapControlButton
             icon={MapPinIcon}
-            label="Snap to GPS"
+            label="Lock to GPS"
             active={isTracking}
             isTouch={isTouch}
-            onAction={handleSnapToGps}
-            labelPosition="below"
-            ariaLabel="Snap to GPS"
+            onAction={handleLockToGps}
+            labelPosition="left"
+            actionOnFirstTap
+            ariaLabel="Lock to GPS"
           />
           <MapControlButton
             icon={ViewfinderCircleIcon}
@@ -129,7 +133,8 @@ export default function MapToolbar({
             active={false}
             isTouch={isTouch}
             onAction={handleMoveToLocation}
-            labelPosition="below"
+            labelPosition="left"
+            actionOnFirstTap
             ariaLabel="Move to my location"
           />
         </div>

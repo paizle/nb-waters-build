@@ -1,16 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
-import icon from '../../assets/marker-icon.png'
-import iconShadow from '../../assets/marker-shadow.png'
 
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12.5, 41],
-  shadowSize: [41, 41],
-  shadowAnchor: [12.5, 41],
+const RedPinIcon = L.divIcon({
+  className: 'position-pin-icon',
+  html: '<span class="position-pin-marker"></span>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
 })
 
 export default function PositionPin({ position }) {
@@ -26,13 +22,13 @@ export default function PositionPin({ position }) {
 
     const latlng = [position.lat, position.lng]
     const group = L.layerGroup()
-    L.marker(latlng, { icon: DefaultIcon }).addTo(group)
+    L.marker(latlng, { icon: RedPinIcon }).addTo(group)
     if (position.accuracy) {
       L.circle(latlng, {
         radius: position.accuracy,
         weight: 1,
-        color: '#2563eb',
-        fillColor: '#3b82f6',
+        color: '#dc2626',
+        fillColor: '#ef4444',
         fillOpacity: 0.12,
       }).addTo(group)
     }

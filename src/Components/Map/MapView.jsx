@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css'
 import './Map.scss'
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import useGeolocation from '../../Hooks/useGeolocation'
 import useDeviceProperties from '../../Hooks/useDeviceProperties'
 import WaterMarkers from './WaterMarkers'
@@ -36,6 +36,18 @@ function MapViewState({ onChange }) {
   return null
 }
 
+/** Publishes the Leaflet map instance to the parent once the container is ready. */
+function MapBridge({ onMap }) {
+  const map = useMap()
+
+  useEffect(() => {
+    onMap(map)
+    return () => onMap(null)
+  }, [map, onMap])
+
+  return null
+}
+
 export default function MapView({ items, selectedItem, onSelect }) {
   const [map, setMap] = useState(null)
   const [mapView, setMapView] = useState({ bounds: null, zoom: null })
@@ -49,7 +61,6 @@ export default function MapView({ items, selectedItem, onSelect }) {
   return (
     <div className="MapView">
       <MapContainer
-        ref={setMap}
         preferCanvas
         maxBounds={MAP_CONFIG.bounds}
         center={MAP_CONFIG.center}
@@ -64,6 +75,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
           url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
         />
 
+        <MapBridge onMap={setMap} />
         <MapViewState onChange={setMapView} />
 
         <WaterMarkers
