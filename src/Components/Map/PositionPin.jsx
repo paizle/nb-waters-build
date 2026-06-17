@@ -1,37 +1,51 @@
 import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
+import L from 'leaflet'
 import icon from '../../assets/marker-icon.png'
 import iconShadow from '../../assets/marker-shadow.png'
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
-  iconSize: [25, 41], // Size of the marker icon
-  iconAnchor: [12.5, 41], // Anchor point (tip of the marker) to align with the center
-  shadowSize: [41, 41], // Size of the shadow
-  shadowAnchor: [12.5, 41], // Anchor point of the shadow
+  iconSize: [25, 41],
+  iconAnchor: [12.5, 41],
+  shadowSize: [41, 41],
+  shadowAnchor: [12.5, 41],
 })
 
-export default function PositionPin({position}) {
+export default function PositionPin({ position }) {
   const map = useMap()
-
-  const markerRef = useRef(null)
+  const layerRef = useRef(null)
 
   useEffect(() => {
-    if (position) {
-      const marker = L.marker(position, { icon: DefaultIcon }).addTo(map)
-      if (markerRef.current) {
-        map.removeLayer(markerRef.current)
-        markerRef.current = null
-      }
-      markerRef.current = marker
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current)
+      layerRef.current = null
     }
+    if (!position) return
+
+    const latlng = [position.lat, position.lng]
+    const group = L.layerGroup()
+    L.marker(latlng, { icon: DefaultIcon }).addTo(group)
+    if (position.accuracy) {
+      L.circle(latlng, {
+        radius: position.accuracy,
+        weight: 1,
+        color: '#2563eb',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.12,
+      }).addTo(group)
+    }
+    group.addTo(map)
+    layerRef.current = group
+
     return () => {
-      if (markerRef.current) {
-        map.removeLayer(markerRef.current)
-        markerRef.current = null
+      if (layerRef.current) {
+        map.removeLayer(layerRef.current)
+        layerRef.current = null
       }
     }
   }, [map, position])
+
   return null
 }

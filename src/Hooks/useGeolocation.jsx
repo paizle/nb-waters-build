@@ -1,64 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-function useGeolocation() {
-  const [position, setPosition] = useState();
+/**
+ * Geolocation that does NOT request permission on mount. Permission is only
+ * requested after `enable()` is called (i.e. when the user taps the GPS
+ * button). Once enabled, the position is watched continuously.
+ */
+export default function useGeolocation() {
+  const isAvailable = 'geolocation' in navigator;
 
-  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(
-    'geolocation' in navigator
-  );
-
-  const [isTracking, setIsTracking] = useState();
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [isTracking, setIsTracking] = useState(false);
+  const [position, setPosition] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let watchId;
+    if (!isEnabled || !isAvailable) return;
 
-    const handleSuccess = (geoLocation) => {
-      
-      if (geoLocation) {
-
-        const {latitude, longitude, accuracy} = geoLocation.coords
-        const test = {
-          latitude,
-          longitude,
-          accuracy,
-        }
-
-        setPosition({
-          ...test,
-          timestamp: geoLocation.timestamp,
-          error: null,
-        });
-      }
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 30000,
     };
 
-    const handleError = (error) => {
-      setPosition((prevState) => ({
-        ...prevState,
-        error: error,
-      }));
+    const onSuccess = (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      setPosition({ lat: latitude, lng: longitude, accuracy, timestamp: pos.timestamp });
+      setError(null);
     };
 
-    if (isGeolocationAvailable) {
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
-      };
+    const onError = (err) => setError(err);
 
-      if (isTracking) {
-        watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, options);
-      }
-      navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
-    }
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
+    const watchId = navigator.geolocation.watchPosition(onSuccess, onError, options);
 
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, [isGeolocationAvailable, isTracking]);
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [isEnabled, isAvailable]);
 
-  return { position, isGeolocationAvailable, isTracking, setIsTracking }; // Returning the setter
+  const enable = useCallback(() => setIsEnabled(true), []);
+
+  return {
+    isAvailable,
+    isEnabled,
+    enable,
+    isTracking,
+    setIsTracking,
+    position,
+    error,
+  };
 }
-
-export default useGeolocation;

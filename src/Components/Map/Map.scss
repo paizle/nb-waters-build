@@ -1,80 +1,198 @@
-.leaflet-container {
-	.direction-arrow {
-		color: SteelBlue;
-		font-size: 2.5rem;
-		animation: throb ease-in-out 1s infinite;
-		transform-origin: center;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 4rem;
-		height: 4rem;
-	}
-	@keyframes throb {
-		0% {
-			font-size: 2.5rem;
-		}
+.MapView {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
 
-		50% {
-			font-size: 3rem;
-		}
-		100% {
-			font-size: 2.5rem;
-		}
-	}
+  .leaflet-container {
+    height: 100%;
+    width: 100%;
+    background: #f8fafc;
+  }
+}
 
-  .GpsControl {
-    background-color: white;
-    .LoadingSpinner {
-      width: 2.5em;
-      height: 2.5em;
-      margin: 0;
-      padding: .5em;
-      
+// Density blobs. Soft, transparent amber radial gradients that bleed together
+// on overlap; denser clusters of waters read as a more intense amber and
+// contrast against the cyan/blue water outlines.
+.water-blob-icon {
+  background: transparent;
+  border: none;
+
+  // Small, centered interactive core. The decorative blob below has
+  // pointer-events: none so overlapping blobs never steal each other's hover.
+  .water-blob-hit {
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+
+  .water-blob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle closest-side,
+      rgba(245, 158, 11, 0.5) 0%,
+      rgba(217, 119, 6, 0.24) 55%,
+      rgba(180, 83, 9, 0.04) 100%
+    );
+    transition: filter 0.12s ease-out, box-shadow 0.12s ease-out;
+
+    &.is-selected {
+      box-shadow: 0 0 0 2px #92400e;
     }
-    .GeoLocationStatus {
-      display: flex;
-      align-items: center;
-      gap: .5em;
-      .pin {
-        position: relative;
-        font-size: 1.5em;
-      }
-      &.on {
-        background-color: yellow;
-        .pin:before {
-          content: '';
-          position: absolute;
-          z-index: 0;
-          left: 53%;
-          bottom: 1px;
-          border-radius: 50%;
-          transform: scaleY(0.5) translate(-50%, .1em);
-          transform-origin: bottom center;
-          width: 1em;
-          height: 1em;
-          border: 2px solid grey;
-          animation: throb-oval 1s ease-out forwards;
-          animation-iteration-count: infinite;
-        }
-      }
+  }
+
+  // Show the outline on hover and lift the blob above its neighbours.
+  &:hover {
+    z-index: 1000 !important;
+
+    .water-blob {
+      box-shadow: 0 0 0 2px rgba(146, 64, 14, 0.85);
+      filter: saturate(1.2) brightness(1.04);
     }
   }
 }
 
-@keyframes throb-oval {
-  0% {
-    height: 30px;
-    width: 30px;
-    opacity: .1;
+// Popups for the blobs open on hover; disable the fade so quickly moving
+// between blobs doesn't flicker.
+.leaflet-popup.water-popup-wrap {
+  transition: none;
+}
+
+.water-popup-wrap {
+  .leaflet-popup-content {
+    margin: 0.5rem 0.75rem;
+    font-size: 0.85rem;
   }
-  5% {
-    opacity: 1;
+
+  .water-popup {
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    li {
+      padding: 0.1rem 0;
+    }
   }
-  
-  100% {
-    height: 10px;
-    width: 10px;
-    opacity: .1;
+
+  .water-popup-name {
+    color: #0f172a;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .water-popup-count {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #0f172a;
+  }
+
+  .water-popup-zoom {
+    color: #c2410c;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.MapToolbar {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  .MapToolbar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .MapToolbar-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    cursor: pointer;
+    color: #334155;
+
+    svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    &:hover {
+      color: #0f172a;
+    }
+
+    &.active {
+      background: #0891b2;
+      border-color: #0e7490;
+      color: #ffffff;
+    }
+  }
+
+  .MapToolbar-pointer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.45rem 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cbd5e1;
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    max-width: 9rem;
+    cursor: pointer;
+
+    &:hover {
+      background: #ffffff;
+      border-color: #b45309;
+    }
+
+    .MapToolbar-arrow {
+      width: 1.6rem;
+      height: 1.6rem;
+      color: #b45309;
+      transition: transform 0.25s ease-out;
+    }
+
+    .MapToolbar-here {
+      width: 1.6rem;
+      height: 1.6rem;
+      color: #16a34a;
+    }
+
+    .MapToolbar-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0f172a;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
   }
 }

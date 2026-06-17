@@ -51,5 +51,9 @@ pnpm-debug.log*
 
 /public/waters.geojson
 /public/waters-complete.geojson
+/public/waters-old.geojson
+
+# Raw source GeoJSON used only by `npm run prepare-data` (never served)
+/data-src/
 
 /dist

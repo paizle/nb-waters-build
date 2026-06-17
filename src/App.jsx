@@ -1,51 +1,39 @@
 import './App.scss'
-import { useState, useEffect } from 'react'
-import Layout from './Components/Layout/Layout'
-import Sidebar from './Components/Sidebar/Sidebar'
+import { useMemo, useState } from 'react'
+import MapView from './Components/Map/MapView'
+import Footer from './Components/Footer/Footer'
+import SelectWater from './Components/SelectWater/SelectWater'
 import LoadingSpinner from './Components/LoadingSpinner/LoadingSpinner'
 import InstallButton from './Components/InstallAppButton'
-import MapView from './Components/Map/MapView'
-import SelectWater from './Components/SelectWater/SelectWater'
-import useRecords from './Hooks/useIdb'
+import useWaterIndex from './Hooks/useWaterIndex'
 
 export default function App() {
+  const { items, isLoading } = useWaterIndex()
+  const [selectedId, setSelectedId] = useState(null)
 
-  const [selectedFeatureId, setSelectedFeatureId] = useState()
+  const selectedItem = useMemo(
+    () => items.find((item) => item.id === selectedId) ?? null,
+    [items, selectedId]
+  )
 
-  const [selectedFeature, setSelectedFeature] = useState()
+  return (
+    <div className="App">
+      <MapView items={items} selectedItem={selectedItem} onSelect={setSelectedId} />
 
-  const { sortedWaters, getFeatureById, getFeaturesWithinDistance } = useRecords();
+      <Footer>
+        {isLoading ? (
+          <div className="App-loading">
+            <LoadingSpinner />
+            <span>Loading waters…</span>
+          </div>
+        ) : (
+          <SelectWater items={items} selectedId={selectedId} onSelect={setSelectedId} />
+        )}
+      </Footer>
 
-  useEffect(() => {
-    const selectFeature = async (featureId) => {
-      if (featureId) {
-        const feature = await getFeatureById(featureId)
-        setSelectedFeature(feature)
-      } else {
-        setSelectedFeature(null)
-      }
-    }
-    selectFeature(selectedFeatureId)
-  }, [selectedFeatureId, getFeatureById])
-
-	return (
-		<Layout className="WatersMap">
-      <MapView 
-        selectedFeature={selectedFeature}
-        selectFeature={(item) => setSelectedFeatureId(item.id)}
-        getFeaturesWithinDistance={getFeaturesWithinDistance}
-      />
-      <Sidebar>
+      <div className="App-install">
         <InstallButton />
-        {sortedWaters.length 
-          ? <SelectWater
-              items={sortedWaters}
-              selectItemId={(id) => setSelectedFeatureId(id)}
-              selectedItemId={selectedFeatureId}
-            />
-          : <LoadingSpinner />
-        }
-      </Sidebar>
-		</Layout>
-	)
+      </div>
+    </div>
+  )
 }

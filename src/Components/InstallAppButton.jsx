@@ -16,12 +16,9 @@ function InstallButton() {
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
-      // Optionally, send analytics event that PWA is ready to install on desktop
-      console.info("PWA is ready to install");
     };
 
     const handleAppInstalled = () => {
-      console.info("App Installed!");
       setIsInstalled(true);
     };
 
@@ -43,7 +40,6 @@ function InstallButton() {
 
       // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
 
       // We've used the prompt, and can't use it again, clear it
       setDeferredPrompt(null);

@@ -1,212 +1,95 @@
+import 'leaflet/dist/leaflet.css'
 import './Map.scss'
-import { MapContainer as LeafletMapContainer, useMap, TileLayer } from 'react-leaflet'
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useEffect, useState } from 'react'
+import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 import useGeolocation from '../../Hooks/useGeolocation'
+import useDeviceProperties from '../../Hooks/useDeviceProperties'
+import WaterMarkers from './WaterMarkers'
+import ViewportOutlines from './ViewportOutlines'
+import SelectedWater from './SelectedWater'
 import PositionPin from './PositionPin'
-import GeoJsonFeature from './GeoJsonFeature'
-import GpsControl from './GpsControl'
-import GeoJsonFeatureArrow from './GeoJsonFeatureArrow'
-import NearbyGeoJsonFeatures from './NearbyGeoJsonFeatures'
-import { haversineDistance } from '../../Util/coordinates'
+import MapToolbar from './MapToolbar'
 
-export const MapContext = createContext();
+const MAP_CONFIG = {
+  bounds: [
+    [48.2, -69.4],
+    [44.7, -63.5],
+  ],
+  center: [46.45, -66.45],
+  zoom: 7,
+  minZoom: 6,
+  maxZoom: 16,
+}
 
-export default function MapView({selectedFeature, getFeaturesWithinDistance, selectFeature}) {
-
-  const geoLocation = useGeolocation()
-
-  const [position, setPosition] = useState(null)
-  const [center, setCenter] = useState(null)
+/** Reports the current bounds + zoom whenever the map settles. */
+function MapViewState({ onChange }) {
+  const map = useMapEvents({
+    moveend: () => onChange({ bounds: map.getBounds(), zoom: map.getZoom() }),
+    zoomend: () => onChange({ bounds: map.getBounds(), zoom: map.getZoom() }),
+  })
 
   useEffect(() => {
-    if (!geoLocation.position) return
-    const fromGeoLocation = (geoLocation) => ({lat: geoLocation.position.latitude, lng: geoLocation.position.longitude})
-    
-    if (!position) {
-      setPosition(fromGeoLocation(geoLocation))
-    } else {
-      const currentPosition = fromGeoLocation(geoLocation)
-      const distance = haversineDistance(position, currentPosition)
-      if (distance > 15) {
-        setPosition(currentPosition)
-      }
-    }
-  }, [geoLocation.position])
+    onChange({ bounds: map.getBounds(), zoom: map.getZoom() })
+  }, [map, onChange])
 
-  const value = {
-    selectedFeature,
-    selectFeature,
-    geoLocation,
-    position,
-    getFeaturesWithinDistance,
-    center,
-    setCenter
-  }
+  return null
+}
+
+export default function MapView({ items, selectedItem, onSelect }) {
+  const [map, setMap] = useState(null)
+  const [mapView, setMapView] = useState({ bounds: null, zoom: null })
+  const [focusToken, setFocusToken] = useState(0)
+
+  const geolocation = useGeolocation()
+  const deviceProperties = useDeviceProperties()
+  const isTouch = deviceProperties?.isTouch ?? false
 
   return (
-    <MapContext.Provider value={value}>
-      <MapContainer>
-        
+    <div className="MapView">
+      <MapContainer
+        ref={setMap}
+        preferCanvas
+        maxBounds={MAP_CONFIG.bounds}
+        center={MAP_CONFIG.center}
+        zoom={MAP_CONFIG.zoom}
+        minZoom={MAP_CONFIG.minZoom}
+        maxZoom={MAP_CONFIG.maxZoom}
+        zoomControl={false}
+        style={{ height: '100%', width: '100%' }}
+      >
         <TileLayer
-          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
         />
 
-        <ControlMap 
-          geoLocation={geoLocation}
-          position={position}
-          selectedFeature={selectedFeature}
-          setCenter={setCenter}
+        <MapViewState onChange={setMapView} />
+
+        <WaterMarkers
+          items={items}
+          mapView={mapView}
+          selectedId={selectedItem?.id ?? null}
+          onSelect={onSelect}
         />
 
-        <GpsControl 
-          isTracking={geoLocation.isTracking}
-          setIsTracking={geoLocation.setIsTracking}
-          position={position}
-        />
-        
-        <PositionPin isTracking={geoLocation?.isTracking} position={position} />
-
-        <NearbyGeoJsonFeatures 
-          position={center}
-          selectFeature={selectFeature}
+        <ViewportOutlines
+          mapView={mapView}
+          selectedId={selectedItem?.id ?? null}
+          onSelect={onSelect}
+          isTouch={isTouch}
         />
 
-				<GeoJsonFeature 
-          feature={selectedFeature}
-          selectFeature={selectFeature}
-          setIsTracking={geoLocation.setIsTracking}
-        />
+        <SelectedWater item={selectedItem} focusToken={focusToken} />
 
-        <GeoJsonFeatureArrow geoJson={selectedFeature} position={center} />
-        
+        <PositionPin position={geolocation.isEnabled ? geolocation.position : null} />
       </MapContainer>
-    </MapContext.Provider>
-  );
-}
 
-export const useMapContext = () => useContext(MapContext);
-
-function ControlMap({geoLocation, selectedFeature, position, setCenter}) {
-
-  const [trackingZoom, setTrackingZoom] = useState()
-
-  const map = useMap()
-
-  const turnOffTracking = () => {
-    geoLocation.setIsTracking(false)
-  }
-
-  useEffect(() => {
-    map.on('dragstart', turnOffTracking);
-    return () => {
-      map.off('dragstart', turnOffTracking)
-    }
-  }, [])
-
-  useEffect(() => {
-
-    setTrackingZoom(map.getMaxZoom())
-
-    const handleMoveEnd = () => setCenter(map.getCenter())
-    if (map) {
-      map.on('moveend', handleMoveEnd)
-      handleMoveEnd()
-    }
-    
-    return () => {
-      if (map) {
-        map.off('moveend', handleMoveEnd)
-      } 
-    }
-  }, [map])
-
-  useEffect(() => {
-    
-    // if tracking is turned on then pan to the current position
-    if (map && geoLocation.isTracking && position) {
-      map.setView(position, trackingZoom, {
-        animate: true
-      })
-    }
-
-    const handleZoom = () => {
-      if (geoLocation.isTracking) {
-        setTrackingZoom(map.getZoom())
-      }
-    }
-
-    if (map) {
-      map.on('zoom', handleZoom)
-    }
-
-    return () => {
-      if (map) {
-        map.off('zoom', handleZoom)
-      } 
-    }
-  }, [map, geoLocation.isTracking, position, trackingZoom])
-
-  useEffect(() => {
-    // turn tracking off if a new feature is selected
-    if (map && selectedFeature) {
-      geoLocation.setIsTracking(false)
-    }
-  }, [map, selectedFeature])
-
-  useEffect(() => {
-    // zoom to GPS point if tracking is on otherwise use default zoom (mouse position) 
-    
-    const wheelHandler = (e) => {
-      // if tracking then override zoom behavior to use GPS point
-      if (map && geoLocation.isTracking) {
-        e.preventDefault();
-
-        const zoom = map.getZoom();
-        const delta = e.deltaY > 0 ? -1 : 1; // scroll up = zoom in
-        const newZoom = zoom + delta;
-
-        map.setView([geoLocation.position.latitude, geoLocation.position.longitude], newZoom, {
-          animate: true
-        });
-      }
-    } 
-
-    if (map) {
-      if (!geoLocation.isTracking) {
-        map.scrollWheelZoom.enable()
-      } else {
-        map.scrollWheelZoom.disable();  
-      }
-    }
-    map.getContainer().addEventListener('wheel', wheelHandler);
-
-    return () => {
-      map?.getContainer()?.removeEventListener('wheel', wheelHandler);
-    }
-  }, [map, geoLocation.isTracking])
-}
-
-function MapContainer({children}) {
-  const mapConfig = {
-    bounds: [
-      [48.2, -69.4],
-      [44.7, -63.5],
-    ],
-    minZoom: 6,
-    maxZoom: 16,
-  }
-
-  return (  
-    <LeafletMapContainer
-      maxBounds={mapConfig.bounds}
-      center={[46.45, -66.45]}
-      zoom={5}
-      minZoom={mapConfig.minZoom}
-      maxZoom={mapConfig.maxZoom}
-      style={{ height: '100vh', width: '100%' }}
-    >
-      {children}
-    </LeafletMapContainer>
+      <MapToolbar
+        map={map}
+        geolocation={geolocation}
+        selectedItem={selectedItem}
+        mapView={mapView}
+        onFocusSelected={() => setFocusToken((token) => token + 1)}
+      />
+    </div>
   )
 }

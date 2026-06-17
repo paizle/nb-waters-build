@@ -1,74 +1,94 @@
 .SelectWater {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  padding: .25em;
-  height: 100%;
-  
+  position: relative;
+  width: 100%;
+
   .input {
-		position: relative;
-		padding-left: 1px;
-		padding-right: 1px;
-		max-width: 100%;
-		display: inline-flex;
-    margin-bottom: .25em;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
+    padding: 0 0.5rem;
 
     input {
-      border: 1px solid black;
-      border-radius: 1em;
-      padding: .25em 1em;
-      width: 100%;
+      flex: 1 1 auto;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 0.6rem 0.25rem;
+      font-size: 1rem;
     }
 
-    button.clear-selection {
-      position: absolute;
-			right: 6px;
-			top: 50%;
-			transform: translateY(-50%);
-			height: 100%;
-			border: none;
-			&:focus-visible,
-			&:hover {
-				svg {
-					stroke-width: 2px;
-				}
-			}
-			svg {
-				width: 1.25em;
-				height: 1.25em;
-			}
-      .LoadingSpinner {
-        width: 1em;
-        height: 1em;
-        margin: 0;
-        position: absolute;
-        right: 2px;
-        top: 9px;
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: #64748b;
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &.clear:hover svg {
+        color: #0f172a;
       }
     }
   }
+
   .menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
     margin: 0;
     padding: 0;
-    
-    list-style-type: none;
+    list-style: none;
+    max-height: 18rem;
     overflow-y: auto;
     overflow-x: hidden;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+    display: none;
 
-    button {
+    &.open {
+      display: block;
+    }
+
+    .menu-spacer {
+      position: relative;
       width: 100%;
+      list-style: none;
+    }
+
+    .option {
+      position: absolute;
+      left: 0;
+      right: 0;
       display: flex;
-      align-content: center;
-      text-align: left;
-      line-height: 1;
-      border-radius: .25em;
-      padding: .25em;
-      &:hover {
-        text-decoration: underline;
+      align-items: center;
+      padding: 0 0.85rem;
+      font-size: 0.95rem;
+      line-height: 1.2;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &.highlighted {
+        background: #e0f2fe;
       }
+
       &.selected {
-        background-color: SteelBlue;
-        color: white;
-        cursor: default;
+        background: #f59e0b;
+        color: #ffffff;
       }
     }
   }

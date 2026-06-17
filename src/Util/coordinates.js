@@ -51,5 +51,22 @@ export function polygonCentroid(points) {
 }
 
 export function toPoint(latLng) {
-  return [latLng.lat, latLng.latLng]
+  return [latLng.lat, latLng.lng]
+}
+
+// Initial compass bearing in degrees (0 = north, clockwise) from `from` to `to`.
+export function bearing(from, to) {
+  const toRad = (deg) => (deg * Math.PI) / 180
+  const toDeg = (rad) => (rad * 180) / Math.PI
+
+  const φ1 = toRad(from.lat)
+  const φ2 = toRad(to.lat)
+  const Δλ = toRad(to.lng - from.lng)
+
+  const y = Math.sin(Δλ) * Math.cos(φ2)
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) -
+    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
+
+  return (toDeg(Math.atan2(y, x)) + 360) % 360
 }
