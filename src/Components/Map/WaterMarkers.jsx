@@ -366,7 +366,7 @@ function buildPopupContent(cluster, zoomToCluster, onSelectRef) {
     label.textContent = `${cluster.count} waters`
     const link = L.DomUtil.create('a', 'water-popup-zoom', root)
     link.href = '#'
-    link.textContent = 'Tap again to zoom in'
+    link.textContent = 'Zoom in'
     L.DomEvent.on(link, 'click', (e) => {
       L.DomEvent.preventDefault(e)
       zoomToCluster(cluster)
