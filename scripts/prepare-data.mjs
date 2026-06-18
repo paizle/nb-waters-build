@@ -4,7 +4,7 @@
  * Converts the large raw `waters.geojson` (~82MB, 17k features) into small
  * static artifacts the app can load quickly and cache:
  *
- *   public/data/index.json            -> [{ id, name, lat, lng }] sorted by name
+ *   public/data/index.json            -> [{ id, name, lat, lng, area }] sorted by name
  *   public/data/geometry/{cell}.json  -> [{ id, name, lat, lng, geometry }] per grid cell
  *   public/data/manifest.json         -> { version, cellSize, cells: [{ key, count }] }
  *
@@ -15,6 +15,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as turf from '@turf/turf';
+import { getNameFromProps } from './waterNameUtils.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -48,11 +49,7 @@ function findInput() {
   return found;
 }
 
-const getName = (props) =>
-  props?.NAME1 ||
-  props?.NAME2 ||
-  props?.LOCALNAME ||
-  `Unnamed (ID: ${props?.OBJECTID})`;
+const getName = getNameFromProps;
 
 function roundCoords(coords) {
   if (typeof coords[0] === 'number') {
@@ -98,7 +95,14 @@ function main() {
     const lng = Number(centroid[0].toFixed(COORD_PRECISION));
     const lat = Number(centroid[1].toFixed(COORD_PRECISION));
 
-    index.push({ id, name, lat, lng });
+    let area = 0;
+    try {
+      area = Math.round(turf.area(feature));
+    } catch {
+      /* ignore */
+    }
+
+    index.push({ id, name, lat, lng, area });
 
     let geometry = feature.geometry;
     try {

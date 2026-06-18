@@ -7,6 +7,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { bearing } from '../../Util/coordinates'
+import { formatWaterName } from '../../Util/waterName'
 import MapControlButton from './MapControlButton'
 
 const TRACKING_MIN_ZOOM = 13
@@ -84,6 +85,8 @@ export default function MapToolbar({
   const inView = showIndicator && bounds.contains([selectedItem.lat, selectedItem.lng])
   const angle = showIndicator && !inView ? bearing(bounds.getCenter(), selectedItem) : 0
 
+  const displayName = selectedItem ? formatWaterName(selectedItem) : ''
+
   return (
     <div className="MapToolbar">
       {showIndicator && (
@@ -92,22 +95,20 @@ export default function MapToolbar({
             type="button"
             className="MapToolbar-pointer"
             onClick={onFocusSelected}
-            aria-label={`Go to ${selectedItem.name}`}
-            title={inView ? `${selectedItem.name} is in view` : `Go to ${selectedItem.name}`}
+            aria-label={inView ? `${displayName} is in view` : `Go to ${displayName}`}
           >
             {inView ? (
               <CheckCircleIcon className="MapToolbar-here" />
             ) : (
               <ArrowUpIcon className="MapToolbar-arrow" style={{ transform: `rotate(${angle}deg)` }} />
             )}
-            <span className="MapToolbar-name">{selectedItem.name}</span>
+            <span className="MapToolbar-name">{displayName}</span>
           </button>
           <button
             type="button"
             className="MapToolbar-cancel"
             onClick={onClearSelected}
             aria-label="Clear selected water"
-            title="Clear selection"
           >
             <XMarkIcon />
             <span>Cancel</span>

@@ -9,7 +9,7 @@ const RedPinIcon = L.divIcon({
   iconAnchor: [14, 28],
 })
 
-export default function PositionPin({ position }) {
+export default function PositionPin({ position, isTracking }) {
   const map = useMap()
   const layerRef = useRef(null)
 
@@ -23,7 +23,7 @@ export default function PositionPin({ position }) {
     const latlng = [position.lat, position.lng]
     const group = L.layerGroup()
     L.marker(latlng, { icon: RedPinIcon }).addTo(group)
-    if (position.accuracy) {
+    if (isTracking && position.accuracy) {
       L.circle(latlng, {
         radius: position.accuracy,
         weight: 1,
@@ -41,7 +41,7 @@ export default function PositionPin({ position }) {
         layerRef.current = null
       }
     }
-  }, [map, position])
+  }, [map, position, isTracking])
 
   return null
 }

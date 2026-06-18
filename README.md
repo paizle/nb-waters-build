@@ -11,6 +11,21 @@ npm run prepare-data   # one-time: build the optimized data artifacts (see below
 npm run dev
 ```
 
+## Branches and deployment
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Source code (React app, scripts, data pipeline) |
+| `deployment` | Flat `dist/` output for Hostinger |
+
+Deploy without touching your working tree:
+
+```bash
+npm run deploy
+```
+
+This runs `npm run build`, copies `dist/` into a git worktree on `deployment`, commits, and pushes to `origin/deployment`. Hostinger should pull from the **`deployment`** branch.
+
 ## Architecture
 
 The app never loads the raw 82 MB GeoJSON in the browser. Instead a build-time
@@ -22,8 +37,8 @@ in IndexedDB.
 [`scripts/prepare-data.mjs`](scripts/prepare-data.mjs) reads the raw GeoJSON and
 emits to `public/data/`:
 
-- `index.json` — `[{ id, name, lat, lng }]` for every water, sorted by name
-  (~1 MB). Powers the search combobox and the map point markers.
+- `index.json` — `[{ id, name, lat, lng, area }]` for every water, sorted by name
+  (~1 MB). Powers the search combobox and the map **water heat map**.
 - `geometry/{cell}.json` — simplified polygons grouped into 0.25° grid cells,
   loaded only for the current viewport / selected water.
 - `manifest.json` — version + list of available cells (used for cache
@@ -33,35 +48,43 @@ Place the raw source at `data-src/waters.geojson` (preferred) or
 `public/waters.geojson`. The `data-src/` folder is git-ignored and never served.
 Re-run `npm run prepare-data` whenever the source data changes.
 
+Audit unnamed-water property keys:
+
+```bash
+npm run audit-water-names
+```
+
 ### Runtime layers
 
 - **`src/Data/`** — the only place that touches `fetch` / IndexedDB. Handles
   caching, version invalidation, and lazy shard loading.
-  - `waterIndex.js` — shared, cached index load.
-  - `geometry.js` — viewport cell math + per-cell lazy loading.
-  - `manifest.js`, `db.js` — manifest + IndexedDB setup.
-- **`src/Hooks/`** — thin React wrappers over the data layer:
-  `useWaterIndex`, `useWaterSearch`, `useViewportGeometry`,
-  `useFeatureGeometry`, and `useGeolocation`. UI components only use these and
-  never deal with caching directly.
+- **`src/Hooks/`** — thin React wrappers over the data layer.
 - **`src/Components/`** — UI:
-  - `Map/` — `MapView` composes canvas point markers (`WaterMarkers`),
-    viewport outlines (`ViewportOutlines`), the selected outline
-    (`SelectedWater`), and the GPS toolbar (`MapToolbar`).
-  - `Footer/` + `SelectWater/` — the centered, virtualized search combobox
-    overlaying the map.
+  - `Map/` — `MapView` composes the **water heat map** (`WaterMarkers`),
+    viewport outlines, selected outline, GPS overlays, nearest-waters arrows,
+    and toolbar.
+  - `Footer/` + `SelectWater/` — virtualized search combobox.
 
 ### Map rendering strategy
 
-- Every water shows as a lightweight canvas point marker, viewport-culled and
-  clustered in screen space so the marker count stays bounded at any zoom.
-- Real (simplified) outlines fade in for the viewport once zoomed in
-  (zoom ≥ 12) and are loaded per grid cell on demand.
-- The selected water's outline is loaded from its shard and the map fits to it.
+- **Water heat map** (zoom &lt; 12): staggered screen-space blobs whose opacity
+  and green tint scale with water count and precomputed area (when index includes
+  `area`). See [`WaterMarkers.jsx`](src/Components/Map/WaterMarkers.jsx).
+- Real outlines fade in at zoom ≥ 12, loaded per grid cell.
+- Selected water outline loads from its shard; map fits to it.
+
+### Interaction patterns
+
+See [`docs/INTERACTION-PATTERNS.md`](docs/INTERACTION-PATTERNS.md) for hover/tap
+equivalence, `MapControlButton` usage, and `aria-label` vs `title` guidance.
 
 ### GPS
 
-`useGeolocation` does not request permission until the GPS button is tapped.
-Once enabled, the toolbar shows a direction arrow + name pointing from the
-user's position to the selected water, and the snap button centers the map on
-the current location.
+`useGeolocation` does not request permission until a GPS button is tapped.
+Lock to GPS shows a green direction arrow and accuracy circle; Move to my
+location pans once without follow mode.
+
+### Theme
+
+Dark mode toggles via the bottom-left gear menu and swaps the basemap to ArcGIS
+Dark Gray Canvas. Preference is stored in `localStorage`.

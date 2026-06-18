@@ -3,10 +3,11 @@ import { MapIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import MapControlButton from './MapControlButton'
 import useNearestWaters from '../../Hooks/useNearestWaters'
 import { bearing } from '../../Util/coordinates'
+import { formatWaterName } from '../../Util/waterName'
 import { computeNearestOverlays, formatDistance } from './nearestWatersUtils'
 
 /** Full-map overlay: directional arrows + labels when nearest-waters is active. */
-export function NearestWatersOverlay({ map, mapView, items, active, onSelect }) {
+export function NearestWatersOverlay({ map, mapView, items, active, selectedId, onSelect }) {
   const [mapTick, setMapTick] = useState(0)
   const nearest = useNearestWaters(items, mapView)
 
@@ -29,34 +30,42 @@ export function NearestWatersOverlay({ map, mapView, items, active, onSelect }) 
 
   return (
     <div className="NearestWaters-overlay" aria-hidden>
-      {overlays.map(({ item, angle, arrowLeft, arrowTop, nameLeft, nameTop }) => (
-        <div key={item.id}>
-          <button
-            type="button"
-            className="NearestWaters-arrow"
-            style={{
-              left: arrowLeft,
-              top: arrowTop,
-              transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-            }}
-            onClick={() => onSelect(item.id)}
-            aria-label={`Select ${item.name}`}
-            title={item.name}
-          />
-          <button
-            type="button"
-            className="NearestWaters-label"
-            style={{
-              left: nameLeft,
-              top: nameTop,
-              transform: 'translate(-50%, -50%)',
-            }}
-            onClick={() => onSelect(item.id)}
+      {overlays.map(({ item, angle, arrowLeft, arrowTop, nameLeft, nameTop, zIndex }) => {
+        const isSelected = item.id === selectedId
+        const displayName = formatWaterName(item)
+        return (
+          <div
+            key={item.id}
+            className={`NearestWaters-pair${isSelected ? ' is-selected' : ''}`}
+            style={{ left: 0, top: 0, zIndex }}
           >
-            {item.name}
-          </button>
-        </div>
-      ))}
+            <button
+              type="button"
+              className="NearestWaters-arrow"
+              style={{
+                left: arrowLeft,
+                top: arrowTop,
+                transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+              }}
+              onClick={() => onSelect(item.id)}
+              aria-label={`Select ${displayName}`}
+            />
+            <button
+              type="button"
+              className="NearestWaters-label"
+              style={{
+                left: nameLeft,
+                top: nameTop,
+                transform: 'translate(-50%, -50%)',
+              }}
+              onClick={() => onSelect(item.id)}
+              aria-label={`Select ${displayName}`}
+            >
+              {displayName}
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -90,7 +99,7 @@ export function NearestWatersPanel({
               onClick={() => onSelect(item.id)}
             >
               <ArrowUpIcon className="dir-arrow" style={{ transform: `rotate(${angle}deg)` }} />
-              <span className="name">{item.name}</span>
+              <span className="name">{formatWaterName(item)}</span>
               <span className="dist">{formatDistance(item.distance)}</span>
             </button>
           </li>

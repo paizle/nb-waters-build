@@ -4,6 +4,7 @@ import { useCombobox } from 'downshift'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { XCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import useWaterSearch from '../../Hooks/useWaterSearch'
+import { formatWaterName } from '../../Util/waterName'
 
 const ROW_HEIGHT = 34
 
@@ -20,7 +21,7 @@ export default function SelectWater({ items, selectedId, onSelect }) {
   // Reflect external selection (e.g. clicking the map) in the input.
   useEffect(() => {
     const selected = items.find((item) => item.id === selectedId)
-    setInputValue(selected ? selected.name : '')
+    setInputValue(selected ? formatWaterName(selected) : '')
   }, [selectedId, items])
 
   const {
@@ -87,7 +88,7 @@ export default function SelectWater({ items, selectedId, onSelect }) {
                   style={{ height: row.size, transform: `translateY(${row.start}px)` }}
                   {...getItemProps({ item, index: row.index })}
                 >
-                  {item.name}
+                  {formatWaterName(item)}
                 </div>
               )
             })}

@@ -7,7 +7,7 @@
   .leaflet-container {
     height: 100%;
     width: 100%;
-    background: #f8fafc;
+    background: var(--map-bg);
   }
 }
 
@@ -28,8 +28,7 @@
   }
 }
 
-// Density blobs — same cyan palette as water outlines, low opacity so overlap
-// reads as density without overwhelming the map.
+// Water heat map — overlapping blobs showing areas that contain waters (zoom < 12).
 .water-blob-icon {
   background: transparent;
   border: none;
@@ -40,32 +39,42 @@
     cursor: pointer;
   }
 
-  .water-blob {
+  .water-blob.water-heat-map {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     border-radius: 50%;
-    background: radial-gradient(
-      circle closest-side,
-      rgba(34, 211, 238, 0.7) 0%,
-      rgba(8, 145, 178, 0.35) 55%,
-      rgba(8, 145, 178, 0.05) 100%
-    );
+    background:
+      radial-gradient(
+        circle closest-side,
+        rgba(13, 148, 136, var(--heat-count-center, 0)) 0%,
+        rgba(13, 148, 136, var(--heat-count-edge, 0)) 75%,
+        rgba(13, 148, 136, 0) 100%
+      ),
+      radial-gradient(
+        circle closest-side,
+        rgba(34, 211, 238, var(--heat-area-center, 0)) 0%,
+        rgba(34, 211, 238, var(--heat-area-edge, 0)) 75%,
+        rgba(34, 211, 238, 0) 100%
+      );
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
     transition: filter 0.12s ease-out, box-shadow 0.12s ease-out;
 
     &.is-selected {
-      box-shadow: 0 0 0 2px #0d9488;
+      box-shadow:
+        0 0 0 1px rgba(34, 211, 238, 0.3),
+        0 0 0 2px var(--accent-selected);
     }
   }
 
-  &:hover,
+  &.is-hovered,
   &.tapped {
-    z-index: 1000 !important;
-
-    .water-blob {
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.85);
+    .water-blob.water-heat-map {
+      box-shadow:
+        0 0 0 1px rgba(34, 211, 238, 0.3),
+        0 0 0 2px rgba(13, 148, 136, 0.85);
       filter: brightness(1.06);
     }
   }
@@ -162,12 +171,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
+    background: var(--surface-solid);
+    border: 1px solid var(--surface-border);
     border-radius: 0.6rem;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
     cursor: pointer;
-    color: #334155;
+    color: var(--text-muted);
     flex-shrink: 0;
 
     svg {
@@ -190,9 +199,9 @@
     white-space: nowrap;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #0f172a;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #cbd5e1;
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
     border-radius: 0.4rem;
     padding: 0.35rem 0.6rem;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
@@ -241,8 +250,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid #cbd5e1;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
   border-radius: 0.6rem;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
   min-width: 11rem;
@@ -303,6 +312,12 @@
   pointer-events: none;
   overflow: hidden;
 
+  .NearestWaters-pair {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
   .NearestWaters-arrow,
   .NearestWaters-label {
     position: absolute;
@@ -311,6 +326,7 @@
     border: none;
     background: transparent;
     padding: 0;
+    transition: filter 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out;
   }
 
   .NearestWaters-arrow {
@@ -318,33 +334,181 @@
     height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
-    border-bottom: 22px solid #0891b2;
+    border-bottom: 22px solid var(--accent);
     filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.25));
     transform-origin: center center;
-
-    &:hover {
-      border-bottom-color: #0d9488;
-    }
   }
 
   .NearestWaters-label {
     max-width: 8rem;
     padding: 0.2rem 0.45rem;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid #cbd5e1;
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
     border-radius: 0.35rem;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
     font-size: 0.72rem;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
 
-    &:hover {
-      border-color: #0d9488;
-      color: #0d9488;
+  .NearestWaters-pair:hover,
+  .NearestWaters-pair.is-selected {
+    .NearestWaters-arrow {
+      border-bottom-color: var(--accent-selected);
+      filter: drop-shadow(0 0 4px rgba(13, 148, 136, 0.55));
+    }
+
+    .NearestWaters-label {
+      border-color: var(--accent-selected);
+      color: var(--accent-selected);
+      box-shadow: 0 0 0 1px var(--accent-selected);
+    }
+  }
+}
+
+.GpsTracking-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 905;
+  pointer-events: none;
+  overflow: hidden;
+
+  .GpsTracking-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 22px solid var(--accent-selected);
+    filter: drop-shadow(0 0 4px rgba(13, 148, 136, 0.55));
+    transform-origin: center center;
+  }
+}
+
+.MapSettingsMenu {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.45rem;
+  pointer-events: none;
+
+  .MapSettingsMenu-gear {
+    pointer-events: auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-solid);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    cursor: pointer;
+    color: var(--text-muted);
+
+    svg {
+      width: 1.4rem;
+      height: 1.4rem;
+      transition: transform 0.25s ease-out;
+    }
+  }
+
+  &.open .MapSettingsMenu-gear svg {
+    transform: rotate(90deg);
+  }
+
+  .MapSettingsMenu-stack {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.35rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 0.6rem;
+    background: var(--surface);
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.25s ease-out,
+      visibility 0s linear 0.25s;
+
+    &.open {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+      transition:
+        opacity 0.2s ease-out,
+        transform 0.25s ease-out,
+        visibility 0s;
+    }
+  }
+
+  .MapSettingsMenu-action {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.25s ease-out;
+
+    .MapSettingsMenu-stack.open & {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .MapSettingsMenu-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-solid);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .MapSettingsMenu-label {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    opacity: 0;
+    transform: translateX(12px);
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.25s ease-out;
+
+    &.animate-in {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 }
@@ -378,40 +542,41 @@
     align-items: center;
     gap: 0.2rem;
     padding: 0.45rem 0.5rem;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #cbd5e1;
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
     border-bottom: none;
     border-radius: 0;
-    max-width: 9rem;
+    min-width: 10.5rem;
+    max-width: 14rem;
     cursor: pointer;
 
     &:hover {
-      background: #ffffff;
-      border-color: #0d9488;
+      background: var(--surface-solid);
+      border-color: var(--accent-selected);
     }
 
     .MapToolbar-arrow {
       width: 1.6rem;
       height: 1.6rem;
-      color: #0d9488;
+      color: var(--accent-selected);
       transition: transform 0.25s ease-out;
     }
 
     .MapToolbar-here {
       width: 1.6rem;
       height: 1.6rem;
-      color: #0d9488;
+      color: var(--accent-selected);
     }
 
     .MapToolbar-name {
       font-size: 0.75rem;
       font-weight: 600;
-      color: #0f172a;
+      color: var(--text-primary);
       text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.25;
+      width: 100%;
     }
   }
 
@@ -421,8 +586,8 @@
     justify-content: center;
     gap: 0.25rem;
     padding: 0.3rem 0.5rem;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
+    background: var(--surface-solid);
+    border: 1px solid var(--surface-border);
     border-radius: 0;
     cursor: pointer;
     font-size: 0.7rem;

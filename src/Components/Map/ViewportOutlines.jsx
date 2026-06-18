@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 import useViewportGeometry from '../../Hooks/useViewportGeometry'
+import { formatWaterName } from '../../Util/waterName'
 
 const OUTLINE_STYLE = {
   weight: 2.5,
@@ -69,7 +70,7 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
         } else {
           lyr.on('mouseover', () => lyr.setStyle(HOVER_STYLE))
           lyr.on('mouseout', resetStyle)
-          lyr.bindTooltip(feature.properties.name, { sticky: true })
+          lyr.bindTooltip(formatWaterName({ name: feature.properties.name }), { sticky: true })
         }
       },
     })

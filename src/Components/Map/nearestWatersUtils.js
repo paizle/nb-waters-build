@@ -25,6 +25,7 @@ export function computeNearestOverlays(map, mapView, nearest) {
 
   const centerPt = map.latLngToContainerPoint(center)
   const from = { lat: center.lat, lng: center.lng }
+  const maxDist = Math.max(...nearest.map((w) => w.distance), 1)
 
   return nearest.map((item) => {
     const angle = bearing(from, item)
@@ -38,6 +39,7 @@ export function computeNearestOverlays(map, mapView, nearest) {
       arrowTop: centerPt.y + arrowOff.y,
       nameLeft: centerPt.x + nameOff.x,
       nameTop: centerPt.y + nameOff.y,
+      zIndex: 920 + Math.round((1 - item.distance / maxDist) * 79),
     }
   })
 }

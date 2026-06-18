@@ -95,9 +95,8 @@ export default function MapControlButton({
             className="MapControlButton-icon"
             onClick={handleClick}
             aria-pressed={active}
-            aria-label={ariaLabel ?? label}
-            title={label}
-          >
+        aria-label={ariaLabel ?? label}
+      >
             {createElement(icon, null)}
           </button>
         </div>

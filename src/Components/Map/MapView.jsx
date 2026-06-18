@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import useGeolocation from '../../Hooks/useGeolocation'
 import useDeviceProperties from '../../Hooks/useDeviceProperties'
+import useTheme from '../../Hooks/useTheme'
 import WaterMarkers from './WaterMarkers'
 import ViewportOutlines from './ViewportOutlines'
 import SelectedWater from './SelectedWater'
 import PositionPin from './PositionPin'
 import MapToolbar from './MapToolbar'
+import MapSettingsMenu from './MapSettingsMenu'
+import GpsTrackingOverlay from './GpsTrackingOverlay'
 import { NearestWatersPanel, NearestWatersOverlay } from './NearestWaters'
 
 const MAP_CONFIG = {
@@ -20,6 +23,12 @@ const MAP_CONFIG = {
   zoom: 7,
   minZoom: 6,
   maxZoom: 16,
+}
+
+const TILE_URLS = {
+  light:
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  dark: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
 }
 
 /** Reports the current bounds + zoom whenever the map settles. */
@@ -57,6 +66,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
   const geolocation = useGeolocation()
   const deviceProperties = useDeviceProperties()
   const isTouch = deviceProperties?.isTouch ?? false
+  const { isDark } = useTheme()
 
   return (
     <div className="MapView">
@@ -72,7 +82,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          url={isDark ? TILE_URLS.dark : TILE_URLS.light}
         />
 
         <MapBridge onMap={setMap} />
@@ -95,14 +105,25 @@ export default function MapView({ items, selectedItem, onSelect }) {
 
         <SelectedWater item={selectedItem} focusToken={focusToken} />
 
-        <PositionPin position={geolocation.isEnabled ? geolocation.position : null} />
+        <PositionPin
+          position={geolocation.isEnabled ? geolocation.position : null}
+          isTracking={geolocation.isTracking}
+        />
       </MapContainer>
+
+      <GpsTrackingOverlay
+        map={map}
+        mapView={mapView}
+        position={geolocation.position}
+        active={geolocation.isTracking}
+      />
 
       <NearestWatersOverlay
         map={map}
         mapView={mapView}
         items={items}
         active={nearestActive}
+        selectedId={selectedItem?.id ?? null}
         onSelect={onSelect}
       />
 
@@ -127,6 +148,8 @@ export default function MapView({ items, selectedItem, onSelect }) {
           onClearSelected={() => onSelect(null)}
         />
       </div>
+
+      <MapSettingsMenu />
     </div>
   )
 }
