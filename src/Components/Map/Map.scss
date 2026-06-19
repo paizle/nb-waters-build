@@ -46,25 +46,34 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     border-radius: 50%;
-    background: radial-gradient(
-      circle closest-side,
-      rgba(var(--heat-r), var(--heat-g), var(--heat-b), var(--heat-center, 0.18)) 0%,
-      rgba(var(--heat-r), var(--heat-g), var(--heat-b), var(--heat-edge, 0.07)) 75%,
-      rgba(var(--heat-r), var(--heat-g), var(--heat-b), 0) 100%
-    );
-    transition: filter 0.12s ease-out, box-shadow 0.12s ease-out;
+    background:
+      radial-gradient(
+        circle closest-side,
+        rgba(13, 148, 136, var(--heat-count-center, 0)) 0%,
+        rgba(13, 148, 136, var(--heat-count-edge, 0)) 75%,
+        rgba(13, 148, 136, 0) 100%
+      ),
+      radial-gradient(
+        circle closest-side,
+        rgba(34, 211, 238, var(--heat-area-center, 0)) 0%,
+        rgba(34, 211, 238, var(--heat-area-edge, 0)) 75%,
+        rgba(34, 211, 238, 0) 100%
+      );
+    transition: filter 0.12s ease-out;
 
     &.is-selected {
-      box-shadow: 0 0 0 2px var(--accent-selected);
+      box-shadow:
+        0 0 0 1px rgba(34, 211, 238, 0.3),
+        0 0 0 2px var(--accent-selected);
     }
   }
 
-  &:hover,
+  &.is-hovered,
   &.tapped {
-    z-index: 1000 !important;
-
     .water-blob.water-heat-map {
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.85);
+      box-shadow:
+        0 0 0 1px rgba(34, 211, 238, 0.3),
+        0 0 0 2px rgba(13, 148, 136, 0.85);
       filter: brightness(1.06);
     }
   }
@@ -534,8 +543,7 @@
     border: 1px solid var(--surface-border);
     border-bottom: none;
     border-radius: 0;
-    min-width: 10.5rem;
-    max-width: 14rem;
+    max-width: 7rem;
     cursor: pointer;
 
     &:hover {

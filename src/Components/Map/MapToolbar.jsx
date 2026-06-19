@@ -75,9 +75,13 @@ export default function MapToolbar({
   }
 
   const handleMoveToLocation = () => {
-    setIsTracking(false)
     requestFix()
     requestPan()
+  }
+
+  const handleOnFocusSelected = () => {
+    onFocusSelected()
+    setIsTracking(false)
   }
 
   const bounds = mapView?.bounds
@@ -94,7 +98,7 @@ export default function MapToolbar({
           <button
             type="button"
             className="MapToolbar-pointer"
-            onClick={onFocusSelected}
+            onClick={handleOnFocusSelected}
             aria-label={inView ? `${displayName} is in view` : `Go to ${displayName}`}
           >
             {inView ? (
@@ -120,7 +124,7 @@ export default function MapToolbar({
         <div className="MapToolbar-buttons">
           <MapControlButton
             icon={MapPinIcon}
-            label="Lock to GPS"
+            label="Lock to my location"
             active={isTracking}
             isTouch={isTouch}
             onAction={handleLockToGps}
@@ -138,6 +142,7 @@ export default function MapToolbar({
             actionOnFirstTap
             ariaLabel="Move to my location"
           />
+          
         </div>
       )}
     </div>

@@ -20,8 +20,8 @@ function clusterCellPx(zoom) {
   return Math.round(20 + t * 16)
 }
 
-const BLOB_R_MIN = 10
-const BLOB_R_MAX = 92
+const BLOB_R_MIN = 20
+const BLOB_R_MAX = 70
 
 /**
  * Shared 0–1 strength from water body area (m²). Drives blob radius and blue opacity.
@@ -75,7 +75,7 @@ function countColorIntensity(count) {
 /** Color opacity scale: faint when zoomed out, full strength when zoomed in. */
 function heatIntensityScale(zoom) {
   const t = heatZoomFactor(zoom)
-  return 0.28 + t * 0.72
+  return 0.32 + t * 0.72
 }
 
 /** Water heat map: blue layer = area (same strength as blob size); green = count. */

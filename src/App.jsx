@@ -29,11 +29,12 @@ export default function App() {
         ) : (
           <SelectWater items={items} selectedId={selectedId} onSelect={setSelectedId} />
         )}
+        <div className="App-install">
+          <InstallButton />
+        </div>
       </Footer>
 
-      <div className="App-install">
-        <InstallButton />
-      </div>
+      
     </div>
   )
 }
