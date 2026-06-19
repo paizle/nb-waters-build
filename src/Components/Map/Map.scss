@@ -46,35 +46,25 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     border-radius: 50%;
-    background:
-      radial-gradient(
-        circle closest-side,
-        rgba(13, 148, 136, var(--heat-count-center, 0)) 0%,
-        rgba(13, 148, 136, var(--heat-count-edge, 0)) 75%,
-        rgba(13, 148, 136, 0) 100%
-      ),
-      radial-gradient(
-        circle closest-side,
-        rgba(34, 211, 238, var(--heat-area-center, 0)) 0%,
-        rgba(34, 211, 238, var(--heat-area-edge, 0)) 75%,
-        rgba(34, 211, 238, 0) 100%
-      );
-    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
+    background: radial-gradient(
+      circle closest-side,
+      rgba(var(--heat-r), var(--heat-g), var(--heat-b), var(--heat-center, 0.18)) 0%,
+      rgba(var(--heat-r), var(--heat-g), var(--heat-b), var(--heat-edge, 0.07)) 75%,
+      rgba(var(--heat-r), var(--heat-g), var(--heat-b), 0) 100%
+    );
     transition: filter 0.12s ease-out, box-shadow 0.12s ease-out;
 
     &.is-selected {
-      box-shadow:
-        0 0 0 1px rgba(34, 211, 238, 0.3),
-        0 0 0 2px var(--accent-selected);
+      box-shadow: 0 0 0 2px var(--accent-selected);
     }
   }
 
-  &.is-hovered,
+  &:hover,
   &.tapped {
+    z-index: 1000 !important;
+
     .water-blob.water-heat-map {
-      box-shadow:
-        0 0 0 1px rgba(34, 211, 238, 0.3),
-        0 0 0 2px rgba(13, 148, 136, 0.85);
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.85);
       filter: brightness(1.06);
     }
   }
@@ -426,28 +416,34 @@
   }
 
   .MapSettingsMenu-stack {
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: flex-start;
-    gap: 0.35rem;
-    padding: 0.35rem;
-    border: 1px solid var(--surface-border);
-    border-radius: 0.6rem;
-    background: var(--surface);
+    position: absolute;
+    top: 0;
+    
     pointer-events: none;
     visibility: hidden;
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(0);
     transition:
       opacity 0.2s ease-out,
       transform 0.25s ease-out,
       visibility 0s linear 0.25s;
 
+    .MapSettingsMenu-panel {
+      gap: 0.5rem;
+      border-radius: 0.6rem;
+      position: absolute;
+      bottom: 0;
+      display: flex;
+      gap: .5em;
+      flex-direction: column-reverse;
+      align-items: flex-start;
+    }
+
     &.open {
       pointer-events: auto;
       visibility: visible;
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(-.5em);
       transition:
         opacity 0.2s ease-out,
         transform 0.25s ease-out,
@@ -459,28 +455,20 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.45rem;
-    opacity: 0;
-    transform: translateY(8px);
-    transition:
-      opacity 0.2s ease-out,
-      transform 0.25s ease-out;
-
-    .MapSettingsMenu-stack.open & {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   .MapSettingsMenu-icon {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
     background: var(--surface-solid);
     border: 1px solid var(--surface-border);
-    border-radius: 0.5rem;
+    border-radius: 0.6rem;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+    
     cursor: pointer;
     color: var(--text-muted);
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
@@ -501,14 +489,14 @@
     border-radius: 0.4rem;
     padding: 0.3rem 0.55rem;
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateX(-8px);
     transition:
       opacity 0.2s ease-out,
       transform 0.25s ease-out;
 
     &.animate-in {
       opacity: 1;
-      transform: translateX(0);
+      transform: translateX(8px);
     }
   }
 }

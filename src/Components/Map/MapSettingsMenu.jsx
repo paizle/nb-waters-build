@@ -29,11 +29,6 @@ function SettingsAction({ icon, label, onAction, isTouch, delayMs }) {
       onPointerEnter={() => !isTouch && setFocused(true)}
       onPointerLeave={() => !isTouch && setFocused(false)}
     >
-      {popperVisible && (
-        <span className={`MapSettingsMenu-label ${labelAnimating ? 'animate-in' : ''}`}>
-          {label}
-        </span>
-      )}
       <button
         type="button"
         className="MapSettingsMenu-icon"
@@ -42,6 +37,11 @@ function SettingsAction({ icon, label, onAction, isTouch, delayMs }) {
       >
         {createElement(icon, null)}
       </button>
+      {popperVisible && (
+        <span className={`MapSettingsMenu-label ${labelAnimating ? 'animate-in' : ''}`}>
+          {label}
+        </span>
+      )}
     </div>
   )
 }
@@ -70,13 +70,16 @@ export default function MapSettingsMenu() {
   return (
     <div ref={rootRef} className={`MapSettingsMenu ${open ? 'open' : ''}`}>
       <div className={`MapSettingsMenu-stack ${open ? 'open' : ''}`}>
-        <SettingsAction
-          icon={ThemeIcon}
-          label={themeLabel}
-          onAction={toggleTheme}
-          isTouch={isTouch}
-          delayMs={0}
-        />
+        <div className={`MapSettingsMenu-panel`}>
+          
+          <SettingsAction
+            icon={ThemeIcon}
+            label={themeLabel}
+            onAction={toggleTheme}
+            isTouch={isTouch}
+            delayMs={0}
+          />
+        </div>
       </div>
       <button
         type="button"
