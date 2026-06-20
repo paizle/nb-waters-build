@@ -1,11 +1,11 @@
 /**
- * Reports property keys on features with no NAME1/NAME2/LOCALNAME.
+ * Reports property keys on features with no resolved name from NAME_FIELDS.
  * Run: node scripts/audit-water-names.mjs
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { hasKnownName } from './waterNameUtils.mjs'
+import { hasKnownName, NAME_FIELDS } from './waterNameUtils.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
@@ -49,7 +49,7 @@ function main() {
     }
   }
 
-  console.log(`\nFeatures without NAME1/NAME2/LOCALNAME: ${unnamed} / ${features.length}\n`)
+  console.log(`\nFeatures without a resolved name (${NAME_FIELDS.join(', ')}): ${unnamed} / ${features.length}\n`)
   console.log('Property keys with non-empty values (frequency):')
   const sorted = [...keyCounts.entries()].sort((a, b) => b[1] - a[1])
   for (const [key, count] of sorted) {

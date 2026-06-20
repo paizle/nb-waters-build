@@ -114,7 +114,7 @@ export default function MapView({ items, selectedItem, onSelect }) {
       <GpsTrackingOverlay
         map={map}
         mapView={mapView}
-        position={geolocation.position}
+        selectedItem={selectedItem}
         active={geolocation.isTracking}
       />
 
@@ -150,6 +150,15 @@ export default function MapView({ items, selectedItem, onSelect }) {
       </div>
 
       <MapSettingsMenu />
+
+      <div className="WatersDataAttribution">
+        Waters from{' '}
+        <a title="New Brunswick Hydrographic Network - Government of New Brunswick, Department of Natural Resources and Energy Development."
+          href="https://open.canada.ca/data/en/dataset/be3bcf7c-64f5-9c6f-84d4-18bdad897ea7"
+          target="_blank"
+          rel="noopener noreferrer"
+        >New Brunswick Hydrographic Network</a>
+      </div>
     </div>
   )
 }

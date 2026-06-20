@@ -5,14 +5,14 @@ import useViewportGeometry from '../../Hooks/useViewportGeometry'
 import { formatWaterName } from '../../Util/waterName'
 
 const OUTLINE_STYLE = {
-  weight: 2.5,
+  weight: 6,
   color: '#0891b2',
   fillColor: '#22d3ee',
   fillOpacity: 0.25,
 }
 
 const HOVER_STYLE = {
-  weight: 4,
+  weight: 10,
   color: '#0d9488',
   fillColor: '#2dd4bf',
   fillOpacity: 0.35,
@@ -45,7 +45,7 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
         .map((f) => ({
           type: 'Feature',
           geometry: f.geometry,
-          properties: { id: f.id, name: f.name },
+          properties: { id: f.id, name: f.name, nid: f.nid },
         })),
     }
 
@@ -70,7 +70,7 @@ export default function ViewportOutlines({ mapView, selectedId, onSelect, isTouc
         } else {
           lyr.on('mouseover', () => lyr.setStyle(HOVER_STYLE))
           lyr.on('mouseout', resetStyle)
-          lyr.bindTooltip(formatWaterName({ name: feature.properties.name }), { sticky: true })
+          lyr.bindTooltip(formatWaterName(feature.properties), { sticky: true })
         }
       },
     })

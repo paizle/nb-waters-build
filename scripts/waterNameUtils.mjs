@@ -1,22 +1,41 @@
 /** Shared name resolution for prepare-data and audit scripts. */
 
-export const NAME_FIELDS = ['NAME1', 'NAME2', 'LOCALNAME', 'WATNAME', 'ALTNAME', 'GNIS_NAME']
+export const NAME_FIELDS = [
+  'NAME1',
+  'NAME2',
+  'LOCALNAME',
+  'NAMEID1',
+  'NAMEID2',
+  'LOCALNAMEID',
+]
+
+const UUID_LIKE = /^[0-9A-F]{32}$/i
+
+function isUuidLike(value) {
+  const s = String(value).trim().replace(/-/g, '')
+  return UUID_LIKE.test(s)
+}
+
+const UUID_ID_FIELDS = new Set(['NAMEID1', 'NAMEID2', 'LOCALNAMEID'])
+
+function isTruthyName(value, field) {
+  if (value == null) return false
+  const trimmed = String(value).trim()
+  if (!trimmed) return false
+  if (UUID_ID_FIELDS.has(field) && isUuidLike(trimmed)) return false
+  return true
+}
 
 export function hasKnownName(props) {
   if (!props) return false
-  return Boolean(
-    (props.NAME1 && String(props.NAME1).trim()) ||
-      (props.NAME2 && String(props.NAME2).trim()) ||
-      (props.LOCALNAME && String(props.LOCALNAME).trim())
-  )
+  return NAME_FIELDS.some((field) => isTruthyName(props[field], field))
 }
 
 export function getNameFromProps(props) {
-  if (!props) return 'Unknown water'
+  if (!props) return ''
   for (const field of NAME_FIELDS) {
     const value = props[field]
-    if (value != null && String(value).trim()) return String(value).trim()
+    if (isTruthyName(value, field)) return String(value).trim()
   }
-  const id = props.OBJECTID
-  return id != null ? `Unnamed (ID: ${id})` : 'Unknown water'
+  return ''
 }

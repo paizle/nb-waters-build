@@ -4,8 +4,8 @@
  * Converts the large raw `waters.geojson` (~82MB, 17k features) into small
  * static artifacts the app can load quickly and cache:
  *
- *   public/data/index.json            -> [{ id, name, lat, lng, area }] sorted by name
- *   public/data/geometry/{cell}.json  -> [{ id, name, lat, lng, geometry }] per grid cell
+ *   public/data/index.json            -> [{ id, name, nid, lat, lng, area }] sorted by name
+ *   public/data/geometry/{cell}.json  -> [{ id, name, nid, lat, lng, geometry }] per grid cell
  *   public/data/manifest.json         -> { version, cellSize, cells: [{ key, count }] }
  *
  * The raw source lives outside the served `public/` folder so it is never
@@ -84,6 +84,7 @@ function main() {
       continue;
     }
     const name = getName(props);
+    const nid = props.NID != null ? String(props.NID).trim() : '';
 
     let centroid;
     try {
@@ -95,14 +96,16 @@ function main() {
     const lng = Number(centroid[0].toFixed(COORD_PRECISION));
     const lat = Number(centroid[1].toFixed(COORD_PRECISION));
 
-    let area = 0;
-    try {
-      area = Math.round(turf.area(feature));
-    } catch {
-      /* ignore */
+    let area = Math.round(Number(props.SHAPEAREA) || 0);
+    if (!area) {
+      try {
+        area = Math.round(turf.area(feature));
+      } catch {
+        /* ignore */
+      }
     }
 
-    index.push({ id, name, lat, lng, area });
+    index.push({ id, name, nid, lat, lng, area });
 
     let geometry = feature.geometry;
     try {
@@ -118,14 +121,16 @@ function main() {
 
     const key = cellKey(lat, lng);
     if (!cells.has(key)) cells.set(key, []);
-    cells.get(key).push({ id, name, lat, lng, geometry });
+    cells.get(key).push({ id, name, nid, lat, lng, geometry });
   }
 
   const sortFeatures = (a, b) => {
-    const aUnnamed = a.name.startsWith('Unnamed');
-    const bUnnamed = b.name.startsWith('Unnamed');
-    if (aUnnamed !== bUnnamed) return aUnnamed ? 1 : -1;
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    const aNamed = Boolean(a.name.trim());
+    const bNamed = Boolean(b.name.trim());
+    if (aNamed !== bNamed) return aNamed ? -1 : 1;
+    const aKey = aNamed ? a.name : a.nid || String(a.id);
+    const bKey = bNamed ? b.name : b.nid || String(b.id);
+    return aKey.localeCompare(bKey, undefined, { sensitivity: 'base' });
   };
   index.sort(sortFeatures);
 

@@ -289,7 +289,7 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect, isT
 
       const marker = L.marker([cluster.lat, cluster.lng], { icon, keyboard: false, zIndexOffset })
 
-      marker.bindPopup(buildPopupContent(cluster, zoomToCluster, onSelectRef), {
+      marker.bindPopup(buildPopupContent(cluster, zoomToCluster, onSelectRef, isTouch), {
         closeButton: false,
         autoPan: false,
         offset: [0, -radius + 4],
@@ -346,7 +346,7 @@ export default function WaterMarkers({ items, mapView, selectedId, onSelect, isT
   return null
 }
 
-function buildPopupContent(cluster, zoomToCluster, onSelectRef) {
+function buildPopupContent(cluster, zoomToCluster, onSelectRef, isTouch) {
   const root = L.DomUtil.create('div', 'water-popup')
 
   if (cluster.count <= NAME_LIMIT) {
@@ -364,6 +364,9 @@ function buildPopupContent(cluster, zoomToCluster, onSelectRef) {
   } else {
     const label = L.DomUtil.create('div', 'water-popup-count', root)
     label.textContent = `${cluster.count} waters`
+  }
+
+  if (isTouch) {
     const link = L.DomUtil.create('a', 'water-popup-zoom', root)
     link.href = '#'
     link.textContent = 'Zoom in'

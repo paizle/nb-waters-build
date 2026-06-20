@@ -4,8 +4,8 @@ import { offsetFromBearing } from './nearestWatersUtils'
 
 const ARROW_RADIUS_PX = 78
 
-/** Green direction arrow from map center to GPS when lock-to-GPS is active. */
-export default function GpsTrackingOverlay({ map, mapView, position, active }) {
+/** Green direction arrow toward selected water while lock-to-GPS is active. */
+export default function GpsTrackingOverlay({ map, mapView, selectedItem, active }) {
   const [mapTick, setMapTick] = useState(0)
 
   useEffect(() => {
@@ -19,10 +19,10 @@ export default function GpsTrackingOverlay({ map, mapView, position, active }) {
 
   const style = useMemo(() => {
     void mapTick
-    if (!active || !map || !position || !mapView?.bounds) return null
+    if (!active || !map || !selectedItem || !mapView?.bounds) return null
 
     const center = mapView.bounds.getCenter()
-    const angle = bearing({ lat: center.lat, lng: center.lng }, position)
+    const angle = bearing(center, selectedItem)
     const centerPt = map.latLngToContainerPoint(center)
     const off = offsetFromBearing(angle, ARROW_RADIUS_PX)
 
@@ -31,7 +31,7 @@ export default function GpsTrackingOverlay({ map, mapView, position, active }) {
       left: centerPt.x + off.x,
       top: centerPt.y + off.y,
     }
-  }, [active, map, mapView, position, mapTick])
+  }, [active, map, mapView, selectedItem, mapTick])
 
   if (!style) return null
 

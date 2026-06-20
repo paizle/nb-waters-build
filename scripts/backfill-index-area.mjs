@@ -1,6 +1,7 @@
 /**
  * Add `area` (m²) to public/data/index.json from existing geometry shards.
  * Use when index was built before prepare-data wrote area, or source GeoJSON is absent.
+ * Prefer re-running `npm run prepare-data` so area comes from source SHAPEAREA.
  */
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

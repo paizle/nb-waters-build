@@ -37,7 +37,7 @@ in IndexedDB.
 [`scripts/prepare-data.mjs`](scripts/prepare-data.mjs) reads the raw GeoJSON and
 emits to `public/data/`:
 
-- `index.json` — `[{ id, name, lat, lng, area }]` for every water, sorted by name
+- `index.json` — `[{ id, name, nid, lat, lng, area }]` for every water, sorted by name
   (~1 MB). Powers the search combobox and the map **water heat map**.
 - `geometry/{cell}.json` — simplified polygons grouped into 0.25° grid cells,
   loaded only for the current viewport / selected water.
@@ -47,6 +47,14 @@ emits to `public/data/`:
 Place the raw source at `data-src/waters.geojson` (preferred) or
 `public/waters.geojson`. The `data-src/` folder is git-ignored and never served.
 Re-run `npm run prepare-data` whenever the source data changes.
+
+Area values come from the source `SHAPEAREA` property. Names are resolved from
+`NAME1`, `NAME2`, `LOCALNAME`, then non-UUID `NAMEID*` / `LOCALNAMEID` fields;
+features without a name store an empty string and display `National ID: {NID}` in
+the app.
+
+See [`docs/DATA-LICENSE.md`](docs/DATA-LICENSE.md) for data licensing and
+attribution requirements.
 
 Audit unnamed-water property keys:
 
