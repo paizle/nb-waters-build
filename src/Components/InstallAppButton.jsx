@@ -7,7 +7,7 @@ function InstallButton() {
   useEffect(() => {
     // Check if the app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      //setIsInstalled(true);
+      setIsInstalled(true);
       return; // App is already installed, no need to show the button
     }
 
@@ -56,13 +56,11 @@ function InstallButton() {
 
 
   return (
-    <div>{
     deferredPrompt && ( // Only render if there's a deferredPrompt
       <button onClick={handleInstallClick}>
         Install App
       </button>
-    )}
-    </div>
+    )
   );
 }
 

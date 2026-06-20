@@ -1,7 +1,12 @@
 .SelectWater {
-  position: relative;
-  width: 80%;
-  margin: 0 auto;
+  position: relative;  
+  width: auto;
+  margin: 0 auto 0 3em;
+  
+  @screen sm {
+    width: 80%;  
+    margin: 0 auto;
+  }
 
   .input {
     position: relative;
