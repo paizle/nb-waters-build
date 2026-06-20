@@ -285,10 +285,10 @@
     }
 
     .name {
+      color: var(--text-primary);
       flex: 1;
       font-size: 0.8rem;
       font-weight: 600;
-      color: #0f172a;
       line-height: 1.2;
       min-width: 0;
       overflow: hidden;
